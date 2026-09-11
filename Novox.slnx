@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Novox.App/Novox.App.csproj" />
+    <Project Path="src/Novox.Core/Novox.Core.csproj" />
+  </Folder>
+</Solution>

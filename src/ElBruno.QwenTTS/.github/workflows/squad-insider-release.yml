@@ -1,0 +1,40 @@
+name: Squad Insider Release
+# Project type was not detected — configure build, test, and insider release commands below
+
+on:
+  push:
+    branches: [insider]
+
+permissions:
+  contents: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Build and test
+        run: |
+          dotnet restore
+          dotnet build -c Release --no-restore
+          dotnet test -c Release --no-build --verbosity normal
+
+      - name: Create insider release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # TODO: Add your insider/pre-release commands here
+          echo "No release commands configured — update squad-insider-release.yml"

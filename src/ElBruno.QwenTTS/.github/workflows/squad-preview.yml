@@ -1,0 +1,35 @@
+name: Squad Preview Validation
+# Project type was not detected — configure build, test, and validation commands below
+
+on:
+  push:
+    branches: [preview]
+
+permissions:
+  contents: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Build and test
+        run: |
+          dotnet restore
+          dotnet build -c Release --no-restore
+          dotnet test -c Release --no-build --verbosity normal
+
+      - name: Validate
+        run: |
+          echo "βœ… Build and tests passed — preview branch is valid"

@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ElBruno.QwenTTS.Core\ElBruno.QwenTTS.Core.csproj" />
+    <ProjectReference Include="..\ElBruno.QwenTTS.BlazorComponents\ElBruno.QwenTTS.BlazorComponents.csproj" />
+    <ProjectReference Include="..\ElBruno.QwenTTS.VoiceCloning\ElBruno.QwenTTS.VoiceCloning.csproj" />
+  </ItemGroup>
+
+</Project>

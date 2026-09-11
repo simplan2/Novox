@@ -1,0 +1,60 @@
+# Model weights (downloaded, not committed)
+python/models/
+
+# ONNX models (generated, too large for git)
+python/onnx_models/*.onnx
+python/onnx_models/*.onnx.data
+python/onnx_models/embeddings/
+
+# Re-exported 1.7B vocoder (too large for git; upload to HuggingFace)
+python/onnx_1.7b/
+
+# Downloaded ONNX runtime models (from HuggingFace)
+python/onnx_runtime/
+
+# Patched models for DirectML (generated locally)
+python/onnx_runtime_dml/
+
+# Base model ONNX exports (generated locally)
+python/onnx_base/
+
+# Tokenizer artifacts (extracted, not committed)
+python/tokenizer_artifacts/
+
+# Python
+python/.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+
+# .NET build outputs (all projects, including root AppHost and samples)
+**/bin/
+**/obj/
+
+# Generated audio (web app)
+src/QwenTTS.Web/wwwroot/generated/
+
+# Generated audio (root)
+*.wav
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vs/
+*.user
+python/parity_outputs/
+
+# Generated Aspire agent skills
+.agents/
+
+# Squad runtime state (kept on dev branches only)
+.squad/agents/
+.squad/log/
+.squad/orchestration-log/
+.squad/decisions.md
+.squad/decisions/
+.squad/casting/
+.squad/identity/
+.squad/skills/

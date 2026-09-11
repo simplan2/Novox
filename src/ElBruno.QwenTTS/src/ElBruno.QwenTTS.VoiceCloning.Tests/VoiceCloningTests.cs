@@ -1,0 +1,300 @@
+using Xunit;
+using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Reflection;
+using ElBruno.QwenTTS.VoiceCloning.Audio;
+using ElBruno.QwenTTS.VoiceCloning.Models;
+using ElBruno.QwenTTS.VoiceCloning.Pipeline;
+using ElBruno.QwenTTS.Pipeline;
+
+namespace ElBruno.QwenTTS.VoiceCloning.Tests;
+
+public class MelSpectrogramTests : IDisposable
+{
+    private readonly string _tempDir;
+
+    public MelSpectrogramTests()
+    {
+        _tempDir = Path.Combine(Path.GetTempPath(), $"vc_test_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(_tempDir);
+    }
+
+    [Fact]
+    public void Extract_ReturnsCorrectShape()
+    {
+        // 1 second of silence at 24 kHz
+        int sampleRate = 24000;
+        int nSamples = sampleRate;
+        var samples = new float[nSamples];
+
+        var mel = MelSpectrogram.Extract(samples, sampleRate);
+
+        // T_mel = 1 + (24000 - 1024) / 256 = 90 frames (approx)
+        Assert.True(mel.GetLength(0) > 0, "Should have at least one frame");
+        Assert.Equal(128, mel.GetLength(1));  // 128 mel bins
+    }
+
+    [Fact]
+    public void Extract_WithSineWave_HasNonZeroEnergy()
+    {
+        int sampleRate = 24000;
+        int nSamples = sampleRate; // 1 second
+        var samples = new float[nSamples];
+
+        // Generate 440 Hz sine wave
+        for (int i = 0; i < nSamples; i++)
+            samples[i] = MathF.Sin(2f * MathF.PI * 440f * i / sampleRate) * 0.5f;
+
+        var mel = MelSpectrogram.Extract(samples, sampleRate);
+
+        // At least some mel bins should have non-trivial energy
+        float maxVal = float.MinValue;
+        for (int t = 0; t < mel.GetLength(0); t++)
+            for (int m = 0; m < mel.GetLength(1); m++)
+                maxVal = Math.Max(maxVal, mel[t, m]);
+
+        Assert.True(maxVal > -20f, "Sine wave should produce significant mel energy");
+    }
+
+    [Fact]
+    public void Extract_ShortAudio_StillWorks()
+    {
+        // Very short audio: 256 samples (one hop)
+        var samples = new float[256];
+        for (int i = 0; i < 256; i++)
+            samples[i] = MathF.Sin(2f * MathF.PI * 1000f * i / 24000);
+
+        var mel = MelSpectrogram.Extract(samples);
+
+        Assert.True(mel.GetLength(0) >= 1, "Should produce at least one frame");
+        Assert.Equal(128, mel.GetLength(1));
+    }
+
+    [Fact]
+    public void FromWavFile_ReadsAndExtracts()
+    {
+        // Create a simple WAV file
+        var wavPath = Path.Combine(_tempDir, "test.wav");
+        int sampleRate = 24000;
+        int nSamples = sampleRate; // 1 second
+        var samples = new float[nSamples];
+        for (int i = 0; i < nSamples; i++)
+            samples[i] = MathF.Sin(2f * MathF.PI * 440f * i / sampleRate) * 0.3f;
+
+        ElBruno.QwenTTS.Audio.WavWriter.Write(wavPath, samples, sampleRate);
+
+        var mel = MelSpectrogram.FromWavFile(wavPath);
+
+        Assert.True(mel.GetLength(0) > 0);
+        Assert.Equal(128, mel.GetLength(1));
+    }
+
+    public void Dispose()
+    {
+        if (Directory.Exists(_tempDir))
+            Directory.Delete(_tempDir, recursive: true);
+    }
+}
+
+public class VoiceCloningDownloaderTests : IDisposable
+{
+    private readonly string _tempDir;
+
+    public VoiceCloningDownloaderTests()
+    {
+        _tempDir = Path.Combine(Path.GetTempPath(), $"vc_dl_test_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(_tempDir);
+    }
+
+    [Fact]
+    public void IsModelDownloaded_EmptyDir_ReturnsFalse()
+    {
+        Assert.False(VoiceCloningDownloader.IsModelDownloaded(_tempDir));
+    }
+
+    [Fact]
+    public void DefaultModelDir_IsUnderElBruno()
+    {
+        var dir = VoiceCloningDownloader.DefaultModelDir;
+        Assert.Contains("ElBruno", dir);
+        Assert.Contains("QwenTTS-Base", dir);
+    }
+
+    [Fact]
+    public async Task DownloadModelAsync_CancellationPreventsDownload()
+    {
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            VoiceCloningDownloader.DownloadModelAsync(_tempDir, cancellationToken: cts.Token));
+    }
+
+    public void Dispose()
+    {
+        if (Directory.Exists(_tempDir))
+            Directory.Delete(_tempDir, recursive: true);
+    }
+}
+
+public class SpeakerEncoderTests
+{
+    [Fact]
+    public void Constructor_AcceptsModelPath()
+    {
+        // Just verify the constructor doesn't throw (lazy loading)
+        var encoder = new SpeakerEncoder("nonexistent.onnx");
+        Assert.Equal(1024, encoder.EmbeddingDim);
+        Assert.Equal(128, encoder.MelDim);
+        encoder.Dispose();
+    }
+
+    /// <summary>
+    /// Parity test: C# mel spectrogram must produce the same number of frames
+    /// as PyTorch for the same audio input.
+    /// PyTorch: numFrames = 1 + (padded_len - n_fft) / hop where padded_len = len + 2*384
+    /// </summary>
+    [Fact]
+    public void MelSpectrogram_FrameCount_MatchesPyTorch()
+    {
+        // Simulate 1 second of 24kHz audio
+        int nSamples = 24000;
+        var samples = new float[nSamples];
+        for (int i = 0; i < nSamples; i++)
+            samples[i] = MathF.Sin(2f * MathF.PI * 440f * i / 24000);
+
+        var mel = MelSpectrogram.Extract(samples);
+
+        // PyTorch: padding = 384, padded_len = 24000 + 768 = 24768
+        // numFrames = 1 + (24768 - 1024) / 256 = 1 + 23744/256 = 1 + 92 = 93
+        int expectedFrames = 1 + (nSamples + 2 * 384 - 1024) / 256;
+        Assert.Equal(expectedFrames, mel.GetLength(0));
+        Assert.Equal(128, mel.GetLength(1));
+    }
+}
+
+public class SpeechTokenizerTests
+{
+    [Fact]
+    public void Constructor_ThrowsIfModelNotFound()
+    {
+        Assert.Throws<FileNotFoundException>(() =>
+            new SpeechTokenizer("nonexistent_tokenizer.onnx"));
+    }
+
+    [Fact]
+    public void Constants_AreCorrect()
+    {
+        Assert.Equal(24000, SpeechTokenizer.SampleRate);
+        Assert.Equal(1920, SpeechTokenizer.SamplesPerFrame);
+        Assert.Equal(16, SpeechTokenizer.NumCodebooks);
+    }
+}
+
+public class VoiceClonePipelineTests
+{
+    [Fact]
+    public void Constructor_ThrowsIfSpeakerEncoderMissing()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), $"vc_pipe_test_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(tempDir);
+
+        try
+        {
+            Assert.Throws<FileNotFoundException>(() => new VoiceClonePipeline(tempDir));
+        }
+        finally
+        {
+            Directory.Delete(tempDir, recursive: true);
+        }
+    }
+}
+
+public class VoiceClonePipelineTelemetryTests
+{
+    private static readonly SemaphoreSlim TelemetryTestGate = new(1, 1);
+
+    [Fact]
+    public void SynchronousInstrumentation_RecordsSuccessAndFailureStatuses()
+    {
+        TelemetryTestGate.Wait();
+        try
+        {
+            foreach (var operation in new[] { "extract_embedding", "synthesize" })
+            {
+                var (listener, activities) = CreateListener();
+                using (listener)
+                {
+                    var method = typeof(VoiceClonePipeline).GetMethod(
+                        "ExecuteWithActivity",
+                        BindingFlags.NonPublic | BindingFlags.Static)!;
+                    var closedMethod = method.MakeGenericMethod(typeof(int));
+
+                    var result = closedMethod.Invoke(null, [operation, new Func<int>(() => 42)]);
+                    var exception = Assert.Throws<TargetInvocationException>(() =>
+                        closedMethod.Invoke(null, [operation, new Func<int>(() => throw new InvalidOperationException())]));
+
+                    Assert.Equal(42, result);
+                    Assert.IsType<InvalidOperationException>(exception.InnerException);
+                    Assert.Equal(
+                        [ActivityStatusCode.Ok, ActivityStatusCode.Error],
+                        activities.Select(activity => activity.Status));
+                    Assert.All(activities, activity =>
+                    {
+                        Assert.Equal($"gen_ai.voice_clone.{operation}", activity.DisplayName);
+                        Assert.DoesNotContain(activity.TagObjects, tag =>
+                            tag.Key.Contains("path", StringComparison.OrdinalIgnoreCase) ||
+                            tag.Key.Contains("audio", StringComparison.OrdinalIgnoreCase) ||
+                            tag.Key.Contains("prompt", StringComparison.OrdinalIgnoreCase) ||
+                            tag.Key.Contains("embedding", StringComparison.OrdinalIgnoreCase));
+                    });
+                }
+            }
+        }
+        finally
+        {
+            TelemetryTestGate.Release();
+        }
+    }
+
+    private static (ActivityListener Listener, ConcurrentQueue<Activity> Activities) CreateListener()
+    {
+        var activities = new ConcurrentQueue<Activity>();
+        var listener = new ActivityListener
+        {
+            ShouldListenTo = source => source.Name == "ElBruno.QwenTTS",
+            Sample = static (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllData,
+            ActivityStarted = activities.Enqueue
+        };
+        ActivitySource.AddActivityListener(listener);
+        return (listener, activities);
+    }
+}
+
+public class VoiceCloningDownloaderIclTests
+{
+    [Fact]
+    public void ExpectedFiles_IncludesSpeechTokenizer()
+    {
+        // Verify that IsModelDownloaded checks for the speech tokenizer ONNX model.
+        // An empty dir should return false, confirming tokenizer12hz_encode.onnx is expected.
+        var tempDir = Path.Combine(Path.GetTempPath(), $"vc_icl_test_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(tempDir);
+
+        try
+        {
+            Assert.False(VoiceCloningDownloader.IsModelDownloaded(tempDir));
+        }
+        finally
+        {
+            Directory.Delete(tempDir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void DefaultRepoId_IsValid()
+    {
+        Assert.False(string.IsNullOrEmpty(VoiceCloningDownloader.DefaultRepoId));
+        Assert.Contains("/", VoiceCloningDownloader.DefaultRepoId);
+    }
+}
