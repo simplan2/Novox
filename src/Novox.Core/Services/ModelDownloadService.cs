@@ -27,7 +27,7 @@ public class ModelDownloadService : IModelDownloadService
     private CancellationTokenSource? _cts;
     private bool _isDownloading;
     private readonly string _modelDir;
-    private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(60) };
+    private static readonly HttpClient Http = new() { Timeout = Timeout.InfiniteTimeSpan };
 
     public event Action<string>? OnProgress;
     public event Action<double>? OnProgressPercent;
@@ -86,48 +86,85 @@ public class ModelDownloadService : IModelDownloadService
             OnProgress?.Invoke($"{e.Archivo}: ya descargado.");
             return;
         }
-        long desde = File.Exists(parcial) ? new FileInfo(parcial).Length : 0;
-        if (desde > e.Bytes) { File.Delete(parcial); desde = 0; }
 
-        using var req = new HttpRequestMessage(HttpMethod.Get, $"{ModelCatalog.BaseUrl}/{e.Archivo}?download=true");
-        if (desde > 0) req.Headers.Range = new System.Net.Http.Headers.RangeHeaderValue(desde, null);
-        using var resp = await Http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct);
-        if (desde > 0 && resp.StatusCode != System.Net.HttpStatusCode.PartialContent) { desde = 0; if (File.Exists(parcial)) File.Delete(parcial); }
-        resp.EnsureSuccessStatusCode();
-
-        await using var net = await resp.Content.ReadAsStreamAsync(ct);
-        await using var fs = new FileStream(parcial, desde > 0 ? FileMode.Append : FileMode.Create, FileAccess.Write, FileShare.None);
-        var buf = new byte[1 << 20];
-        var descargado = desde;
-        int n;
-        var t0 = DateTime.UtcNow;
-        while ((n = await net.ReadAsync(buf, ct)) > 0)
+        // El parcial puede estar COMPLETO de un intento anterior (tamaño exacto
+        // pero sin verificar): en ese caso se verifica y se da por bueno en vez
+        // de pedir Range más allá del EOF (el servidor responde 416).
+        if (File.Exists(parcial) && new FileInfo(parcial).Length == e.Bytes)
         {
-            await fs.WriteAsync(buf.AsMemory(0, n), ct);
-            descargado += n;
-            var pct = 100.0 * descargado / e.Bytes;
-            Progress = pct;
-            OnProgressPercent?.Invoke(pct);
-            if ((DateTime.UtcNow - t0).TotalMilliseconds > 300)
+            OnProgress?.Invoke($"{e.Archivo}: comprobando descarga previa…");
+            if (await ShaOkAsync(parcial, e.Sha256, e.Archivo))
             {
-                t0 = DateTime.UtcNow;
-                OnProgress?.Invoke($"{e.Archivo}: {pct:F1}%");
+                File.Move(parcial, destino, true);
+                OnProgress?.Invoke($"{e.Archivo}: OK (verificado).");
+                return;
             }
-        }
-        if (new FileInfo(parcial).Length != e.Bytes)
-            throw new InvalidOperationException($"{e.Archivo}: incompleto ({new FileInfo(parcial).Length}/{e.Bytes} bytes). Reintenta para reanudar.");
-
-        OnProgress?.Invoke($"Verificando SHA-256 de {e.Archivo}…");
-        using var sha = SHA256.Create();
-        await using var fr = File.OpenRead(parcial);
-        var hash = Convert.ToHexString(await sha.ComputeHashAsync(fr, ct)).ToLowerInvariant();
-        if (hash != e.Sha256.ToLowerInvariant())
-        {
             File.Delete(parcial);
-            throw new InvalidOperationException($"{e.Archivo}: SHA-256 no coincide (archivo corrupto).");
+        }
+        // Bucle de 2 intentos: si el servidor rechaza el Range con 416
+        // (p. ej. parcial corrupto por arriba del tamaño), se reintenta
+        // desde cero en vez de morir y borrar lo descargado sin más.
+        for (var intento = 0; intento < 2; intento++)
+        {
+            long desde = File.Exists(parcial) ? new FileInfo(parcial).Length : 0;
+            if (desde > e.Bytes) { File.Delete(parcial); desde = 0; }
+
+            using var req = new HttpRequestMessage(HttpMethod.Get, $"{ModelCatalog.BaseUrl}/{e.Archivo}?download=true");
+            if (desde > 0) req.Headers.Range = new System.Net.Http.Headers.RangeHeaderValue(desde, null);
+            using var resp = await Http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct);
+            if (resp.StatusCode == System.Net.HttpStatusCode.RequestedRangeNotSatisfiable)
+            {
+                try { if (File.Exists(parcial)) File.Delete(parcial); } catch { }
+                continue; // reintenta sin Range
+            }
+            if (desde > 0 && resp.StatusCode != System.Net.HttpStatusCode.PartialContent)
+            {
+                // El servidor ignoró el rango: empezar de cero.
+                try { if (File.Exists(parcial)) File.Delete(parcial); } catch { }
+                desde = 0;
+            }
+            resp.EnsureSuccessStatusCode();
+
+            await using var net = await resp.Content.ReadAsStreamAsync(ct);
+            await using var fs = new FileStream(parcial, desde > 0 ? FileMode.Append : FileMode.Create, FileAccess.Write, FileShare.None);
+            var buf = new byte[1 << 20];
+            var descargado = desde;
+            int n;
+            var t0 = DateTime.UtcNow;
+            while ((n = await net.ReadAsync(buf, ct)) > 0)
+            {
+                await fs.WriteAsync(buf.AsMemory(0, n), ct);
+                descargado += n;
+                var pct = 100.0 * descargado / e.Bytes;
+                Progress = pct;
+                OnProgressPercent?.Invoke(pct);
+                if ((DateTime.UtcNow - t0).TotalMilliseconds > 300)
+                {
+                    t0 = DateTime.UtcNow;
+                    OnProgress?.Invoke($"{e.Archivo}: {pct:F1}%");
+                }
+            }
+            break;
+        }
+        if (!File.Exists(parcial) || new FileInfo(parcial).Length != e.Bytes)
+            throw new InvalidOperationException($"{e.Archivo}: descarga incompleta. Vuelve a pulsar Descargar para reanudarla.");
+
+        if (!await ShaOkAsync(parcial, e.Sha256, e.Archivo))
+        {
+            try { File.Delete(parcial); } catch { }
+            throw new InvalidOperationException($"{e.Archivo}: el SHA-256 no coincide (archivo corrupto).");
         }
         File.Move(parcial, destino, true);
         OnProgress?.Invoke($"{e.Archivo}: OK.");
+    }
+
+    private async Task<bool> ShaOkAsync(string ruta, string esperado, string nombre)
+    {
+        OnProgress?.Invoke($"Verificando SHA-256 de {nombre}…");
+        using var sha = SHA256.Create();
+        await using var fr = File.OpenRead(ruta);
+        var hash = Convert.ToHexString(await sha.ComputeHashAsync(fr)).ToLowerInvariant();
+        return hash == esperado.ToLowerInvariant();
     }
 
     public void Cancel() => _cts?.Cancel();

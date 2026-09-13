@@ -69,13 +69,15 @@ public class TtsService : ITtsService
     {
         if (!_initialized) throw new InvalidOperationException("El motor no está inicializado. Llama InitializeAsync primero.");
         if (string.IsNullOrWhiteSpace(text)) throw new ArgumentException("Texto vacío.", nameof(text));
+        if (!string.IsNullOrEmpty(vozRefPath) && !File.Exists(vozRefPath))
+            throw new FileNotFoundException("La voz de referencia ya no existe en disco. Vuelve a importarla.", vozRefPath);
 
         var bloques = TextChunker.Trocear(text, _config.CaracteresPorBloque > 0 ? _config.CaracteresPorBloque : 280);
         var id = Guid.NewGuid().ToString("N")[..12];
         var fecha = DateTime.Now;
         var nombreArchivo = $"{fecha:yyyyMMdd-HHmmss}-{id}.wav";
         var destino = Path.Combine(_outDir, nombreArchivo);
-        var dispositivo = ResolverDispositivo(_config.Dispositivo);
+        var dispositivo = DispositivoEfectivo();
         var tmp = Path.Combine(Path.GetTempPath(), "novox", id);
         Directory.CreateDirectory(tmp);
 
@@ -153,7 +155,7 @@ public class TtsService : ITtsService
         var log = new Progress<string>(m => BloqueLog?.Invoke(m));
         await backend.SynthesizeBlockAsync(bloque, salidaWav, vozRefPath, new BlockOptions(
             _config.Temp, _config.TopP, _config.TopK, _config.Semilla, _config.MaxFrames,
-            _config.Hilos, _config.CapasGpu, ResolverDispositivo(_config.Dispositivo),
+            _config.Hilos, _config.CapasGpu, DispositivoEfectivo(),
             language, binario, modelo, mmproj), log, ct);
     }
 
@@ -214,53 +216,23 @@ public class TtsService : ITtsService
         return modo;
     }
 
-    /// <summary>Port de buscar_binario() de Clonar-voz.</summary>
-    private static string BuscarBinario()
+    /// <summary>
+    /// Resuelve el modo a un dispositivo REAL. El bug era pasar "auto"
+    /// literal a llama-tts (--device auto), que no existe y el proceso moría.
+    /// Con auto se detecta la mejor GPU (dedicada primero) o "" (= CPU pura).
+    /// </summary>
+    private string DispositivoEfectivo()
     {
-        foreach (var n in new[] { "llama-tts", "llama-tts.exe" })
-        {
-            var enPath = BuscarEnPath(n);
-            if (!string.IsNullOrEmpty(enPath)) return enPath;
-        }
-        var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var candidatos = new[]
-        {
-            Path.Combine(local, @"Microsoft\WinGet\Packages\ggml.llamacpp_Microsoft.Winget.Source_8wekyb3d8bbwe\llama-tts.exe"),
-            "/opt/homebrew/bin/llama-tts", "/usr/local/bin/llama-tts", "/usr/bin/llama-tts",
-            "C:\\llama.cpp\\llama-tts.exe",
-        };
-        foreach (var c in candidatos) if (File.Exists(c)) return c;
-        try
-        {
-            var raiz = Path.Combine(local, @"Microsoft\WinGet\Packages");
-            if (Directory.Exists(raiz))
-            {
-                var hallado = Directory.GetFiles(raiz, "llama-tts.exe", SearchOption.AllDirectories).FirstOrDefault();
-                if (!string.IsNullOrEmpty(hallado)) return hallado;
-            }
-        }
-        catch { }
+        var modo = ResolverDispositivo(_config.Dispositivo);
+        if (modo != "auto") return modo;
+        var (binario, modelo, mmproj) = RutasEfectivas();
+        if (LlamaCppBlockSynthesizer.Disponible(binario, modelo, mmproj))
+            return LlamaCppSetup.DispositivoPreferido(binario);
         return "";
     }
 
-    private static string BuscarEnPath(string nombre)
-    {
-        try
-        {
-            var paths = (Environment.GetEnvironmentVariable("PATH") ?? "").Split(Path.PathSeparator);
-            foreach (var d in paths)
-            {
-                try
-                {
-                    var c = Path.Combine(d.Trim(), nombre);
-                    if (File.Exists(c)) return Path.GetFullPath(c);
-                }
-                catch { }
-            }
-        }
-        catch { }
-        return "";
-    }
+    /// <summary>Port de buscar_binario() de Clonar-voz (centralizado en LlamaCppSetup).</summary>
+    private string BuscarBinario() => LlamaCppSetup.BuscarBinario(_modelDir);
 
     /// <summary>Port de buscar_modelos() de Clonar-voz.</summary>
     private (string modelo, string mmproj) BuscarModelos()

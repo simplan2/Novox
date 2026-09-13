@@ -10,21 +10,26 @@ namespace Novox.App.ViewModels;
 
 public partial class MainViewModel : ObservableObject
 {
-    private readonly AppConfig _config = new();
+    private readonly AppConfig _config;
+    private readonly string _configPath;
     private readonly ITtsService _tts;
     private readonly IAudioCaptureService _audioCapture;
     private readonly IVoiceLibraryService _voiceLib;
     private readonly IModelDownloadService _modelos;
     private CancellationTokenSource? _ctsGen;
+    private readonly System.Diagnostics.Stopwatch _swGrabacion = new();
+    private readonly DispatcherTimer _timerGrabacion = new() { Interval = TimeSpan.FromMilliseconds(100) };
+    private double _progresoObjetivo;
+    private readonly DispatcherTimer _timerProgreso = new() { Interval = TimeSpan.FromMilliseconds(200) };
 
     [ObservableProperty] private string _estadoTexto = "Inicializando...";
     [ObservableProperty] private string _infoSistema = "";
     [ObservableProperty] private string _infoMotor = "llama.cpp: comprobando…";
     [ObservableProperty] private string _texto = "";
-    [ObservableProperty] private string _idiomaSeleccionado = "auto";
+    [ObservableProperty] private string _idiomaSeleccionado = "es";
     [ObservableProperty] private string _dispositivoSeleccionado = "auto";
-    public ObservableCollection<string> Idiomas { get; set; } = new(["auto", "es", "en", "zh", "de", "it", "pt", "ja", "ko", "fr", "ru"]);
-    public ObservableCollection<string> Dispositivos { get; set; } = new(["auto", "CPU", "Vulkan0", "Vulkan1"]);
+    public ObservableCollection<string> Idiomas { get; set; } = new(["es", "en", "zh", "de", "it", "pt", "ja", "ko", "fr", "ru"]);
+    [ObservableProperty] private ObservableCollection<string> _dispositivos = new(["auto", "CPU"]);
     public ObservableCollection<string> Motores { get; set; } = new(["auto", "llama", "onnx", "local"]);
     [ObservableProperty] private string _motorSeleccionado = "auto";
 
@@ -38,13 +43,32 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private bool _isRecording;
     [ObservableProperty] private string _nombreVoz = "";
     [ObservableProperty] private string _transcripcionVoz = "";
+    [ObservableProperty] private string _nombreArchivo = "";
+    [ObservableProperty] private string _transcripcionArchivo = "";
     [ObservableProperty] private string _archivoSeleccionado = "";
-    [ObservableProperty] private string _grabarColor = "#3fb950";
+    [ObservableProperty] private string _grabarColor = "#f85149"; // rojo: estándar "grabar"
 
     [ObservableProperty] private ObservableCollection<VozInfo> _voces = new();
     [ObservableProperty] private VozInfo? _vozSeleccionada;
     [ObservableProperty] private bool _hayVoces;
     [ObservableProperty] private bool _hayHistorial;
+
+    /// <summary>
+    /// Opciones del desplegable VOZ: la voz de serie del modelo (única voz
+    /// integrada del backend llama: Qwen3-TTS Base no tiene catálogo de
+    /// presets, solo referencia o defecto) + la biblioteca propia.
+    /// </summary>
+    public const string VozDefectoId = "__defecto__";
+    private static VozInfo VozDefecto() => new()
+    {
+        Id = VozDefectoId,
+        Nombre = "🔊 Voz del modelo (por defecto)",
+        RutaAudio = "",
+        Transcripcion = "Voz de serie del modelo, sin clonar.",
+        Duracion = 0,
+        Creada = DateTime.Now,
+    };
+    [ObservableProperty] private ObservableCollection<VozInfo> _vocesParaElegir = new([VozDefecto()]);
     [ObservableProperty] private ObservableCollection<GeneracionResultado> _generaciones = new();
     [ObservableProperty] private ObservableCollection<double> _levelBars = new(Enumerable.Repeat(0.0, 32));
     [ObservableProperty] private ObservableCollection<string> _registro = new();
@@ -71,7 +95,7 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private double _modeloProgreso;
     [ObservableProperty] private bool _descargandoModelo;
 
-    // Ajustes avanzados (paridad con Clonar-voz)
+    // Ajustes avanzados (paridad con Clonar-voz; por defecto = llama.cpp)
     [ObservableProperty] private double _temperatura = 0.8;
     [ObservableProperty] private double _topP = 0.95;
     [ObservableProperty] private int _topK = 40;
@@ -81,10 +105,69 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private int _caracteresBloque = 280;
     [ObservableProperty] private int _pausaMs = 150;
 
+    // Validación: fuera de rango → se recorta al mínimo/máximo.
+    // Se publica vía Dispatcher: si se recorta dentro del propio ciclo del
+    // binding, Avalonia ignora la notificación y la caja seguiría mostrando
+    // el número gigante aunque el valor ya esté recortado.
+    private void Recortar<T>(T valor, T recortado, Action<T> asignar) where T : IEquatable<T>
+    {
+        if (!recortado.Equals(valor))
+            Dispatcher.UIThread.Post(() => asignar(recortado));
+    }
+    partial void OnTemperaturaChanged(double value) => Recortar(value, Math.Clamp(value, 0.1, 1.5), v => Temperatura = v);
+    partial void OnTopPChanged(double value) => Recortar(value, Math.Clamp(value, 0.1, 1.0), v => TopP = v);
+    partial void OnTopKChanged(int value) => Recortar(value, Math.Clamp(value, 0, 100), v => TopK = v);
+    partial void OnSemillaChanged(int value) => Recortar(value, Math.Clamp(value, -1, 999999999), v => Semilla = v);
+    partial void OnMaxFramesChanged(int value) => Recortar(value, Math.Clamp(value, 12, 4000), v => MaxFrames = v);
+    partial void OnHilosChanged(int value) => Recortar(value, Math.Clamp(value, 0, 256), v => Hilos = v);
+    partial void OnCaracteresBloqueChanged(int value) => Recortar(value, Math.Clamp(value, 50, 2000), v => CaracteresBloque = v);
+    partial void OnPausaMsChanged(int value) => Recortar(value, Math.Clamp(value, 0, 2000), v => PausaMs = v);
+
+    [RelayCommand]
+    private void RestablecerAjustes()
+    {
+        var d = new AppConfig();
+        Temperatura = d.Temp;
+        TopP = d.TopP;
+        TopK = d.TopK;
+        Semilla = d.Semilla;
+        MaxFrames = d.MaxFrames;
+        Hilos = d.Hilos;
+        CaracteresBloque = d.CaracteresPorBloque;
+        PausaMs = d.PausaMs;
+        AgregarLog("Ajustes restablecidos a los valores por defecto (llama.cpp).");
+    }
+
     public MainViewModel()
     {
+        _configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.json");
+        _config = AppConfig.Load(_configPath);
+        // La config manda (paridad con config.json de Clonar-voz)
+        Temperatura = _config.Temp;
+        TopP = _config.TopP;
+        TopK = _config.TopK;
+        Semilla = _config.Semilla;
+        MaxFrames = _config.MaxFrames;
+        Hilos = _config.Hilos;
+        CaracteresBloque = _config.CaracteresPorBloque;
+        PausaMs = _config.PausaMs;
+        if (Idiomas.Contains(_config.Idioma)) IdiomaSeleccionado = _config.Idioma;
+        if (Dispositivos.Contains(_config.Dispositivo)) DispositivoSeleccionado = _config.Dispositivo;
+        if (Motores.Contains(_config.Motor)) MotorSeleccionado = _config.Motor;
+
         _tts = new TtsService(_config);
         _audioCapture = new AudioCaptureService();
+        _audioCapture.OnLevelUpdated += AlRecibirNivel;
+        _audioCapture.OnRecordingComplete += AlTerminarGrabacion;
+        _timerGrabacion.Tick += (_, _) => Cronometro = $"{_swGrabacion.Elapsed.TotalSeconds:F1} s";
+        // Progreso continuo: entre eventos de bloque la barra avanza sola
+        // hacia el objetivo (llama-tts no informa % dentro del bloque).
+        _timerProgreso.Tick += (_, _) =>
+        {
+            var tope = _progresoObjetivo >= 100 ? 100 : _progresoObjetivo - 0.5;
+            if (ProgresoPorcentaje < tope)
+                ProgresoPorcentaje = Math.Min(tope, ProgresoPorcentaje + Math.Max(0.4, (tope - ProgresoPorcentaje) * 0.08));
+        };
         _voiceLib = new VoiceLibraryService(_config);
         _modelos = new ModelDownloadService(_config);
         _modelos.OnProgress += m => Dispatcher.UIThread.Post(() => { ModeloProgresoTexto = m; AgregarLog("[modelo] " + m); });
@@ -153,7 +236,12 @@ public partial class MainViewModel : ObservableObject
         }
         Voces = new ObservableCollection<VozInfo>(voces);
         HayVoces = Voces.Count > 0;
-        VozSeleccionada = Voces.FirstOrDefault(v => v.Id == sel);
+        var lista = new List<VozInfo> { VozDefecto() };
+        lista.AddRange(voces);
+        VocesParaElegir = new ObservableCollection<VozInfo>(lista);
+        VozSeleccionada = VocesParaElegir.FirstOrDefault(v => v.Id == sel)
+            ?? VocesParaElegir.FirstOrDefault(v => v.Id == VozSeleccionada?.Id)
+            ?? VocesParaElegir[0];
     }
 
     private void CargarHistorial()
@@ -183,6 +271,7 @@ public partial class MainViewModel : ObservableObject
                 r.PlayHistCommand = new RelayCommand<GeneracionResultado?>(_ => PlayHist(r));
                 r.DescargarCommand = new RelayCommand<GeneracionResultado?>(_ => Descargar(r));
                 r.DeleteHistCommand = new RelayCommand<GeneracionResultado?>(_ => DeleteHist(r));
+                r.SaveVozCommand = new RelayCommand<GeneracionResultado?>(_ => GuardarEnVoces(r));
                 lista.Add(r);
             }
             Generaciones = new ObservableCollection<GeneracionResultado>(lista);
@@ -200,73 +289,109 @@ public partial class MainViewModel : ObservableObject
             return;
         }
 
-        IsRecording = true;
-        GrabarTexto = "■ Detener";
-        Cronometro = "0.0 s";
-
-        var sw = System.Diagnostics.Stopwatch.StartNew();
-        _audioCapture.OnLevelUpdated += levels =>
+        try
         {
-            var avg = levels.Length > 0 ? levels.Average() : 0;
-            var bars = new ObservableCollection<double>(Enumerable.Repeat(0.0, 32));
-            for (int i = 0; i < bars.Count; i++)
-                bars[i] = Math.Min(3.0, avg * 30);
-            LevelBars = bars;
-        };
-
-        _audioCapture.OnRecordingComplete += _ =>
+            IsRecording = true;
+            GrabarTexto = "■ Detener";
+            GrabarColor = "#d29922"; // ámbar: estándar "detener"
+            _swGrabacion.Restart();
+            Cronometro = "0.0 s";
+            _timerGrabacion.Start();
+            await _audioCapture.StartRecordingAsync();
+        }
+        catch (Exception ex)
         {
+            _timerGrabacion.Stop();
             IsRecording = false;
             GrabarTexto = "● Grabar";
-            LevelBars = new ObservableCollection<double>(Enumerable.Repeat(0.0, 32));
-            Cronometro = $"{sw.Elapsed.TotalSeconds:F1} s";
-        };
+            GrabarColor = "#f85149";
+            EstadoTexto = $"✕ No se pudo grabar (¿hay micrófono?): {ex.Message}";
+        }
+    }
 
-        await _audioCapture.StartRecordingAsync();
+    /// <summary>
+    /// Medidor de nivel: NAudio avisa en hilo de fondo, así que se
+    /// marshala al hilo de UI (si no, las barras no se mueven).
+    /// </summary>
+    private void AlRecibirNivel(float[] levels)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (LevelBars.Count != 32)
+                LevelBars = new ObservableCollection<double>(Enumerable.Repeat(0.0, 32));
+            for (var i = 0; i < 32; i++)
+            {
+                var v = levels.Length > 0 ? Math.Abs(levels[i * levels.Length / 32]) : 0;
+                LevelBars[i] = 2 + Math.Min(1.0, v * 3) * 34;
+            }
+        });
+    }
+
+    private void AlTerminarGrabacion(MemoryStream _)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            _timerGrabacion.Stop();
+            IsRecording = false;
+            GrabarTexto = "● Grabar";
+            GrabarColor = "#f85149";
+            Cronometro = $"{_swGrabacion.Elapsed.TotalSeconds:F1} s";
+            LevelBars = new ObservableCollection<double>(Enumerable.Repeat(0.0, 32));
+        });
     }
 
     [RelayCommand]
     private async Task GuardarVozAsync()
     {
-        MemoryStream? stream = _audioCapture.GetRecording();
-        if (stream is null && File.Exists(ArchivoSeleccionado))
+        try
         {
-            var bytes = await File.ReadAllBytesAsync(ArchivoSeleccionado);
-            stream = new MemoryStream(bytes);
-        }
-        if (stream is null) { EstadoTexto = "Nada que guardar: graba o indica una ruta de audio."; return; }
-        if (string.IsNullOrWhiteSpace(NombreVoz)) NombreVoz = Path.GetFileNameWithoutExtension(ArchivoSeleccionado.Trim()) is { Length: > 0 } n ? n : "Voz sin nombre";
+            MemoryStream? stream = _audioCapture.GetRecording();
+            if (stream is null && File.Exists(ArchivoSeleccionado.Trim().Trim('"')))
+            {
+                var bytes = await File.ReadAllBytesAsync(ArchivoSeleccionado.Trim().Trim('"'));
+                stream = new MemoryStream(bytes);
+            }
+            if (stream is null) { EstadoTexto = "Nada que guardar: graba o indica la ruta de un audio."; return; }
+            if (string.IsNullOrWhiteSpace(NombreVoz)) NombreVoz = "Voz sin nombre";
 
-        await _voiceLib.AddVoiceAsync(NombreVoz, TranscripcionVoz, stream);
-        await CargarVocesAsync();
-        NombreVoz = "";
-        TranscripcionVoz = "";
-        ArchivoSeleccionado = "";
-        EstadoTexto = "Voz guardada en la biblioteca.";
+            var voz = await _voiceLib.AddVoiceAsync(NombreVoz, TranscripcionVoz, stream);
+            await CargarVocesAsync();
+            VozSeleccionada = VocesParaElegir.FirstOrDefault(v => v.Id == voz.Id) ?? VozSeleccionada;
+            NombreVoz = "";
+            TranscripcionVoz = "";
+            ArchivoSeleccionado = "";
+            EstadoTexto = $"Voz «{voz.Nombre}» guardada ({voz.Duracion:F1}s). Ya puedes usarla en Sintetizar.";
+        }
+        catch (Exception ex) { EstadoTexto = $"✕ No se pudo guardar la voz: {ex.Message}"; }
     }
 
     [RelayCommand]
     private async Task SubirArchivoAsync()
     {
-        // Sin diálogo de archivos en este paso: pega la ruta en el campo y pulsa de nuevo.
-        var ruta = ArchivoSeleccionado.Trim().Trim('"');
-        if (!File.Exists(ruta))
+        try
         {
-            EstadoTexto = "Pega la ruta del audio en el campo (p. ej. C:\\audios\\voz.wav) y pulsa «Importar».";
-            return;
+            // Sin diálogo de archivos en este paso: pega la ruta en el campo y pulsa de nuevo.
+            var ruta = ArchivoSeleccionado.Trim().Trim('"');
+            if (!File.Exists(ruta))
+            {
+                EstadoTexto = "Pega la ruta del audio en el campo (p. ej. C:\\audios\\voz.wav) y pulsa «Importar».";
+                return;
+            }
+            if (new FileInfo(ruta).Length > 60L * 1024 * 1024)
+            {
+                EstadoTexto = "El audio no puede pasar de 60 MB. Con 10-15 s basta.";
+                return;
+            }
+            var nombre = string.IsNullOrWhiteSpace(NombreArchivo) ? Path.GetFileNameWithoutExtension(ruta) : NombreArchivo;
+            var bytes = await File.ReadAllBytesAsync(ruta);
+            var voz = await _voiceLib.AddVoiceAsync(nombre, TranscripcionArchivo, new MemoryStream(bytes));
+            await CargarVocesAsync();
+            VozSeleccionada = VocesParaElegir.FirstOrDefault(v => v.Id == voz.Id) ?? VozSeleccionada;
+            NombreArchivo = "";
+            TranscripcionArchivo = "";
+            EstadoTexto = $"Voz «{nombre}» importada ({voz.Duracion:F1}s). Ya puedes usarla en Sintetizar.";
         }
-        if (new FileInfo(ruta).Length > 60L * 1024 * 1024)
-        {
-            EstadoTexto = "El audio no puede pasar de 60 MB. Con 10-15 s basta.";
-            return;
-        }
-        var nombre = string.IsNullOrWhiteSpace(NombreVoz) ? Path.GetFileNameWithoutExtension(ruta) : NombreVoz;
-        var bytes = await File.ReadAllBytesAsync(ruta);
-        await _voiceLib.AddVoiceAsync(nombre, TranscripcionVoz, new MemoryStream(bytes));
-        await CargarVocesAsync();
-        NombreVoz = "";
-        TranscripcionVoz = "";
-        EstadoTexto = $"Voz «{nombre}» importada.";
+        catch (Exception ex) { EstadoTexto = $"✕ No se pudo importar: {ex.Message}"; }
     }
 
     [RelayCommand]
@@ -288,40 +413,55 @@ public partial class MainViewModel : ObservableObject
         _config.Dispositivo = DispositivoSeleccionado;
         _config.Idioma = IdiomaSeleccionado;
         _config.Motor = MotorSeleccionado;
+        try { _config.Save(_configPath); } catch { }
 
         PuedeGenerar = false;
         MostrarCancelar = true;
         ProgresoTexto = "Iniciando generación...";
         ProgresoPorcentaje = 0;
+        _progresoObjetivo = 0;
+        ResultadoInfo = "";
         Registro.Clear();
+        _timerProgreso.Start();
 
         var bloques = TextChunker.Trocear(Texto, CaracteresBloque);
-        AgregarLog($"Generando {bloques.Count} bloque(s) · motor={MotorSeleccionado} · voz={(VozSeleccionada?.Nombre ?? "defecto")} · disp={DispositivoSeleccionado} · temp={Temperatura} top_p={TopP} top_k={TopK} semilla={Semilla}");
+        var esDefecto = VozSeleccionada is null || VozSeleccionada.Id == VozDefectoId
+            || string.IsNullOrEmpty(VozSeleccionada.RutaAudio) || !File.Exists(VozSeleccionada.RutaAudio);
+        if (esDefecto)
+            AgregarLog("Voz del modelo (por defecto, sin clonar). Para clonar elige una de Mis Voces.");
+        else
+            AgregarLog($"Clonando voz «{VozSeleccionada!.Nombre}» ({VozSeleccionada.Duracion:F1}s de referencia)…");
 
         var progreso = new Progress<ProgresoInfo>(p =>
         {
             if (p.Estado == "bloque")
             {
-                ProgresoTexto = $"Bloque {p.BloqueActual}/{p.TotalBloques}";
-                ProgresoPorcentaje = p.Porcentaje;
+                var trozo = (p.TextoActual ?? "").Trim();
+                if (trozo.Length > 60) trozo = trozo[..60].Trim() + "…";
+                ProgresoTexto = $"Bloque {p.BloqueActual}/{p.TotalBloques} · {trozo}";
+                _progresoObjetivo = p.TotalBloques == 0 ? 100 : 100.0 * p.BloqueActual / p.TotalBloques;
             }
             else if (p.Estado == "log" && p.Mensaje is not null)
                 AgregarLog(p.Mensaje);
             else if (p.Estado == "fin")
+            {
+                _progresoObjetivo = 100;
                 ProgresoPorcentaje = 100;
+            }
         });
 
         try
         {
             var resultado = await _tts.SynthesizeAsync(
-                Texto, VozSeleccionada?.RutaAudio, VozSeleccionada?.Id ?? "defecto",
+                Texto, esDefecto ? null : VozSeleccionada!.RutaAudio, esDefecto ? "defecto" : VozSeleccionada!.Id,
                 IdiomaSeleccionado, progreso, ct);
             ProgresoTexto = $"✓ Listo en {resultado.SegundosGeneracion:F1}s · {resultado.Duracion:F1}s";
-            ResultadoInfo = $"✓ {resultado.NombreArchivo} · {resultado.Duracion:F1}s · {resultado.Dispositivo}";
+            ResultadoInfo = $"✓ {resultado.NombreArchivo} · {resultado.Duracion:F1}s · {resultado.Dispositivo} · voz={(esDefecto ? "modelo" : VozSeleccionada!.Nombre)}";
             AgregarLog($"OK: {resultado.NombreArchivo} ({resultado.Duracion:F1}s)");
             resultado.PlayHistCommand = new RelayCommand<GeneracionResultado?>(_ => PlayHist(resultado));
             resultado.DescargarCommand = new RelayCommand<GeneracionResultado?>(_ => Descargar(resultado));
             resultado.DeleteHistCommand = new RelayCommand<GeneracionResultado?>(_ => DeleteHist(resultado));
+            resultado.SaveVozCommand = new RelayCommand<GeneracionResultado?>(_ => GuardarEnVoces(resultado));
             Generaciones.Insert(0, resultado);
             HayHistorial = true;
         }
@@ -337,6 +477,7 @@ public partial class MainViewModel : ObservableObject
         }
         finally
         {
+            _timerProgreso.Stop();
             PuedeGenerar = true;
             MostrarCancelar = false;
             _ctsGen = null;
@@ -386,13 +527,15 @@ public partial class MainViewModel : ObservableObject
         try { _ = _voiceLib.DeleteVoiceAsync(voz.Id); } catch { }
         Voces.Remove(voz);
         HayVoces = Voces.Count > 0;
-        if (VozSeleccionada?.Id == voz.Id) VozSeleccionada = null;
+        var quito = VocesParaElegir.FirstOrDefault(v => v.Id == voz.Id);
+        if (quito is not null) VocesParaElegir.Remove(quito);
+        if (VozSeleccionada?.Id == voz.Id) VozSeleccionada = VocesParaElegir[0];
     }
 
     private void UseVoz(VozInfo? voz)
     {
         if (voz is null) return;
-        VozSeleccionada = Voces.FirstOrDefault(v => v.Id == voz.Id) ?? voz;
+        VozSeleccionada = VocesParaElegir.FirstOrDefault(v => v.Id == voz.Id) ?? voz;
         SwitchToTab2();
     }
 
@@ -404,6 +547,26 @@ public partial class MainViewModel : ObservableObject
         HayHistorial = Generaciones.Count > 0;
     }
 
+    /// <summary>
+    /// Convierte un audio generado en voz reutilizable de la biblioteca
+    /// (su propio texto queda como transcripción, ideal para el parecido).
+    /// </summary>
+    private async void GuardarEnVoces(GeneracionResultado? gen)
+    {
+        if (gen is null || !File.Exists(gen.RutaArchivo)) return;
+        try
+        {
+            var baseNombre = string.IsNullOrWhiteSpace(gen.Texto) ? gen.NombreArchivo : gen.Texto.Trim();
+            if (baseNombre.Length > 32) baseNombre = baseNombre[..32].Trim() + "…";
+            var bytes = await File.ReadAllBytesAsync(gen.RutaArchivo);
+            var voz = await _voiceLib.AddVoiceAsync(baseNombre, gen.Texto, new MemoryStream(bytes));
+            await CargarVocesAsync();
+            VozSeleccionada = VocesParaElegir.FirstOrDefault(v => v.Id == voz.Id) ?? VozSeleccionada;
+            EstadoTexto = $"Voz «{voz.Nombre}» creada desde el historial. Ya está seleccionada en Sintetizar.";
+        }
+        catch (Exception ex) { EstadoTexto = $"✕ No se pudo guardar en voces: {ex.Message}"; }
+    }
+
     [RelayCommand]
     private void ToggleDevice() { }
 
@@ -413,13 +576,31 @@ public partial class MainViewModel : ObservableObject
         InfoMotor = !e.Existe ? $"llama.cpp: no encontrado — {e.Sugerencia}"
             : !e.SoportaQwen3 ? $"llama.cpp: {e.Version} (sin --mmproj: {e.Sugerencia})"
             : $"llama.cpp: {e.Version} ✓";
+        // Dispositivos reales (Vulkan0, CUDA0…) en vez de la lista quemada
+        var ids = LlamaCppSetup.ListarDispositivos(e.Binario).Select(d => d.Id).ToList();
+        var lista = new List<string> { "auto", "CPU" };
+        lista.AddRange(ids.Where(id => !lista.Contains(id)));
+        var sel = DispositivoSeleccionado;
+        Dispositivos = new ObservableCollection<string>(lista);
+        DispositivoSeleccionado = lista.Contains(sel) ? sel : "auto";
     }
 
     private void RefrescarEstadoModelo()
     {
-        ModeloEstado = _modelos.IsModelAvailable()
-            ? "✓ Modelo listo: hay par modelo + mmproj en la carpeta de modelos."
-            : "Falta el modelo: descarga el par modelo + mmproj (~1.5 GB) una sola vez.";
+        var dir = string.IsNullOrEmpty(_config.ModelDirectory)
+            ? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "modelos")
+            : _config.ModelDirectory;
+        if (_modelos.IsModelAvailable())
+        {
+            var archivos = Directory.Exists(dir)
+                ? string.Join(", ", Directory.GetFiles(dir, "*.gguf").Select(Path.GetFileName))
+                : "";
+            ModeloEstado = $"✓ Modelo listo en:\n{dir}\n{archivos}";
+        }
+        else
+        {
+            ModeloEstado = $"Falta el modelo en:\n{dir}\nDescarga el par modelo + mmproj (~1.5 GB) una sola vez.";
+        }
     }
 
     [RelayCommand]
@@ -448,6 +629,7 @@ public partial class MainViewModel : ObservableObject
             var log = new Progress<string>(m => AgregarLog(m));
             var bin = await LlamaCppSetup.DescargarAsync(binDir, log);
             _config.Binario = bin;
+            try { _config.Save(_configPath); } catch { }
             RefrescarEstadoLlama();
             ProgresoTexto = "✓ llama.cpp instalado.";
         }

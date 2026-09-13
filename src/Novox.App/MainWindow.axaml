@@ -1,10 +1,14 @@
-<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="clr-namespace:Novox.App.ViewModels"
-        x:Class="Novox.App.MainWindow"
-        Title="Novox — Clonador de Voz Local"
-        Width="1160" Height="780" MinWidth="960" MinHeight="620"
-        Background="#0e1117">
+<Window
+    x:Class="Novox.App.MainWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="clr-namespace:Novox.App.ViewModels"
+    Title="Novox — Clonador de Voz Local"
+    Width="1160"
+    Height="780"
+    MinWidth="960"
+    MinHeight="620"
+    Background="#0e1117">
 
     <Window.DataContext>
         <vm:MainViewModel />
@@ -12,374 +16,893 @@
 
     <Window.Styles>
         <Style Selector="Border.card">
-            <Setter Property="Background" Value="#161b24"/>
-            <Setter Property="CornerRadius" Value="14"/>
-            <Setter Property="Padding" Value="20"/>
-            <Setter Property="BorderBrush" Value="#2a323f"/>
-            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="#161b24" />
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="Padding" Value="20" />
+            <Setter Property="BorderBrush" Value="#2a323f" />
+            <Setter Property="BorderThickness" Value="1" />
         </Style>
         <Style Selector="Border.item">
-            <Setter Property="Background" Value="#0e1117"/>
-            <Setter Property="CornerRadius" Value="10"/>
-            <Setter Property="Padding" Value="12"/>
-            <Setter Property="Margin" Value="0,4"/>
-            <Setter Property="BorderBrush" Value="#2a323f"/>
-            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="#0e1117" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="6" />
+            <Setter Property="Margin" Value="0,4" />
+            <Setter Property="BorderBrush" Value="#2a323f" />
+            <Setter Property="BorderThickness" Value="1" />
         </Style>
         <Style Selector="Border.badge">
-            <Setter Property="Background" Value="#2a323f"/>
-            <Setter Property="CornerRadius" Value="9"/>
-            <Setter Property="Width" Value="28"/>
-            <Setter Property="Height" Value="28"/>
+            <Setter Property="Background" Value="#2a323f" />
+            <Setter Property="CornerRadius" Value="9" />
+            <Setter Property="Width" Value="28" />
+            <Setter Property="Height" Value="28" />
         </Style>
         <Style Selector="TextBlock.pageTitle">
-            <Setter Property="FontSize" Value="22"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="22" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="White" />
         </Style>
         <Style Selector="TextBlock.pageSub">
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Foreground" Value="#9aa7b6"/>
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="#9aa7b6" />
         </Style>
         <Style Selector="TextBlock.cardTitle">
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="White" />
         </Style>
         <Style Selector="TextBlock.fieldLabel">
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="#9aa7b6"/>
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="#9aa7b6" />
         </Style>
         <Style Selector="TextBlock.stepTitle">
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="#4f8cff"/>
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="#4f8cff" />
         </Style>
         <Style Selector="TextBlock.hint">
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Foreground" Value="#9aa7b6"/>
-            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="#9aa7b6" />
+            <Setter Property="TextWrapping" Value="Wrap" />
         </Style>
         <Style Selector="TextBlock.empty">
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Foreground" Value="#9aa7b6"/>
-            <Setter Property="TextWrapping" Value="Wrap"/>
-            <Setter Property="HorizontalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,24"/>
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="#9aa7b6" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,24" />
         </Style>
         <Style Selector="Button.nav">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#e6edf3"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="CornerRadius" Value="10"/>
-            <Setter Property="Padding" Value="10"/>
-            <Setter Property="HorizontalAlignment" Value="Stretch"/>
-            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#e6edf3" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="10" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
         </Style>
         <Style Selector="Button.primary">
-            <Setter Property="Background" Value="#4f8cff"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="CornerRadius" Value="10"/>
-            <Setter Property="Padding" Value="20,10"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Background" Value="#4f8cff" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="20,10" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontSize" Value="13" />
         </Style>
         <Style Selector="Button.ghost">
-            <Setter Property="Background" Value="#1e2530"/>
-            <Setter Property="Foreground" Value="#e6edf3"/>
-            <Setter Property="BorderBrush" Value="#2a323f"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="10"/>
-            <Setter Property="Padding" Value="12,8"/>
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Background" Value="#1e2530" />
+            <Setter Property="Foreground" Value="#e6edf3" />
+            <Setter Property="BorderBrush" Value="#2a323f" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="FontSize" Value="12" />
         </Style>
         <Style Selector="Button.danger">
-            <Setter Property="Background" Value="#f85149"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="CornerRadius" Value="10"/>
-            <Setter Property="Padding" Value="14,10"/>
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Background" Value="#f85149" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="14,10" />
+            <Setter Property="FontSize" Value="12" />
         </Style>
         <Style Selector="Button.iconbtn">
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="Width" Value="32"/>
-            <Setter Property="Height" Value="32"/>
-            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Width" Value="32" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="FontSize" Value="13" />
         </Style>
         <Style Selector="Button.dangerGhost">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#f85149"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="Width" Value="32"/>
-            <Setter Property="Height" Value="32"/>
-            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#f85149" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Width" Value="32" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="FontSize" Value="13" />
         </Style>
     </Window.Styles>
 
     <DockPanel>
-        <!-- ═══ Barra lateral ═══ -->
-        <Border DockPanel.Dock="Left" Width="232" Background="#0b0e13" BorderBrush="#2a323f" BorderThickness="0,0,1,0" Padding="16">
+        <!--  ═══ Barra lateral ═══  -->
+        <Border
+            Width="232"
+            Padding="16"
+            Background="#0b0e13"
+            BorderBrush="#2a323f"
+            BorderThickness="0,0,1,0"
+            DockPanel.Dock="Left">
             <Grid RowDefinitions="Auto,*,Auto">
-                <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                    <TextBlock Text="🎙️" FontSize="30" VerticalAlignment="Center"/>
-                    <StackPanel Orientation="Vertical" VerticalAlignment="Center">
-                        <TextBlock Text="Novox" FontSize="18" FontWeight="Bold" Foreground="White"/>
-                        <TextBlock Text="Voz local · Qwen3-TTS" FontSize="10" Foreground="#9aa7b6"/>
+                <StackPanel
+                    Grid.Row="0"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal"
+                    Spacing="12">
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        FontSize="30"
+                        Text="🎙️" />
+                    <StackPanel VerticalAlignment="Center" Orientation="Vertical">
+                        <TextBlock
+                            FontSize="18"
+                            FontWeight="Bold"
+                            Foreground="White"
+                            Text="Novox" />
+                        <TextBlock
+                            FontSize="10"
+                            Foreground="#9aa7b6"
+                            Text="Voz local · Qwen3-TTS" />
                     </StackPanel>
                 </StackPanel>
 
-                <StackPanel Grid.Row="1" Spacing="6" Margin="0,28,0,0">
-                    <TextBlock Text="FLUJO" FontSize="10" FontWeight="Bold" Foreground="#5b6675" Margin="10,0,0,4"/>
-                    <Button Classes="nav" Command="{Binding SwitchToTab1Command}" Background="{Binding Tab1Color}">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <Border Classes="badge"><TextBlock Text="1" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
-                            <StackPanel Orientation="Vertical" VerticalAlignment="Center">
-                                <TextBlock Text="Voces" FontSize="13" FontWeight="SemiBold" Foreground="White"/>
-                                <TextBlock Text="Graba o importa" FontSize="10" Foreground="#9aa7b6"/>
+                <!--  Flujo  -->
+                <Grid
+                    Grid.Row="1"
+                    Margin="0,28,0,0"
+                    RowDefinitions="Auto,Auto"
+                    RowSpacing="6">
+                    <TextBlock
+                        Margin="10,0,0,4"
+                        FontSize="10"
+                        FontWeight="Bold"
+                        Foreground="#5b6675"
+                        Text="FLUJO" />
+
+                    <!--  Nemu de flujo  -->
+                    <StackPanel Grid.Row="1" Spacing="12">
+
+                        <Button
+                            Background="{Binding Tab1Color}"
+                            Classes="nav"
+                            Command="{Binding SwitchToTab1Command}">
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <Border Classes="badge">
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontWeight="Bold"
+                                        Foreground="White"
+                                        Text="1" />
+                                </Border>
+                                <StackPanel VerticalAlignment="Center" Orientation="Vertical">
+                                    <TextBlock
+                                        FontSize="13"
+                                        FontWeight="SemiBold"
+                                        Foreground="White"
+                                        Text="Voces" />
+                                    <TextBlock
+                                        FontSize="10"
+                                        Foreground="#9aa7b6"
+                                        Text="Graba o importa" />
+                                </StackPanel>
                             </StackPanel>
-                        </StackPanel>
-                    </Button>
-                    <Button Classes="nav" Command="{Binding SwitchToTab2Command}" Background="{Binding Tab2Color}">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <Border Classes="badge"><TextBlock Text="2" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
-                            <StackPanel Orientation="Vertical" VerticalAlignment="Center">
-                                <TextBlock Text="Sintetizar" FontSize="13" FontWeight="SemiBold" Foreground="White"/>
-                                <TextBlock Text="Texto → audio" FontSize="10" Foreground="#9aa7b6"/>
+                        </Button>
+                        <Button
+                            Background="{Binding Tab2Color}"
+                            Classes="nav"
+                            Command="{Binding SwitchToTab2Command}">
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <Border Classes="badge">
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontWeight="Bold"
+                                        Foreground="White"
+                                        Text="2" />
+                                </Border>
+                                <StackPanel VerticalAlignment="Center" Orientation="Vertical">
+                                    <TextBlock
+                                        FontSize="13"
+                                        FontWeight="SemiBold"
+                                        Foreground="White"
+                                        Text="Sintetizar" />
+                                    <TextBlock
+                                        FontSize="10"
+                                        Foreground="#9aa7b6"
+                                        Text="Texto → audio" />
+                                </StackPanel>
                             </StackPanel>
-                        </StackPanel>
-                    </Button>
-                    <Button Classes="nav" Command="{Binding SwitchToTab3Command}" Background="{Binding Tab3Color}">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <Border Classes="badge"><TextBlock Text="3" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
-                            <StackPanel Orientation="Vertical" VerticalAlignment="Center">
-                                <TextBlock Text="Historial" FontSize="13" FontWeight="SemiBold" Foreground="White"/>
-                                <TextBlock Text="Tus audios" FontSize="10" Foreground="#9aa7b6"/>
+                        </Button>
+                        <Button
+                            Background="{Binding Tab3Color}"
+                            Classes="nav"
+                            Command="{Binding SwitchToTab3Command}">
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <Border Classes="badge">
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontWeight="Bold"
+                                        Foreground="White"
+                                        Text="3" />
+                                </Border>
+                                <StackPanel VerticalAlignment="Center" Orientation="Vertical">
+                                    <TextBlock
+                                        FontSize="13"
+                                        FontWeight="SemiBold"
+                                        Foreground="White"
+                                        Text="Historial" />
+                                    <TextBlock
+                                        FontSize="10"
+                                        Foreground="#9aa7b6"
+                                        Text="Tus audios" />
+                                </StackPanel>
                             </StackPanel>
-                        </StackPanel>
-                    </Button>
-                    <TextBlock Text="SISTEMA" FontSize="10" FontWeight="Bold" Foreground="#5b6675" Margin="10,14,0,4"/>
-                    <Button Classes="nav" Command="{Binding SwitchToTab4Command}" Background="{Binding Tab4Color}">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <Border Classes="badge"><TextBlock Text="⬇" Foreground="White" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
-                            <StackPanel Orientation="Vertical" VerticalAlignment="Center">
-                                <TextBlock Text="Modelos" FontSize="13" FontWeight="SemiBold" Foreground="White"/>
-                                <TextBlock Text="Pesos GGUF" FontSize="10" Foreground="#9aa7b6"/>
+                        </Button>
+                        <TextBlock
+                            Margin="10,14,0,4"
+                            FontSize="10"
+                            FontWeight="Bold"
+                            Foreground="#5b6675"
+                            Text="SISTEMA" />
+                        <Button
+                            Background="{Binding Tab4Color}"
+                            Classes="nav"
+                            Command="{Binding SwitchToTab4Command}">
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <Border Classes="badge">
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontSize="12"
+                                        FontWeight="Bold"
+                                        Foreground="White"
+                                        Text="⬇" />
+                                </Border>
+                                <StackPanel VerticalAlignment="Center" Orientation="Vertical">
+                                    <TextBlock
+                                        FontSize="13"
+                                        FontWeight="SemiBold"
+                                        Foreground="White"
+                                        Text="Modelos" />
+                                    <TextBlock
+                                        FontSize="10"
+                                        Foreground="#9aa7b6"
+                                        Text="Pesos GGUF" />
+                                </StackPanel>
                             </StackPanel>
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
 
                 <StackPanel Grid.Row="2" Spacing="2">
-                    <TextBlock Text="ESTADO" FontSize="10" FontWeight="Bold" Foreground="#5b6675" Margin="10,0,0,4"/>
-                    <TextBlock Text="{Binding EstadoTexto}" FontSize="11" Foreground="#9aa7b6" TextWrapping="Wrap" Margin="10,0"/>
-                    <TextBlock Text="{Binding InfoSistema}" FontSize="10" Foreground="#5b6675" Margin="10,0"/>
+                    <TextBlock
+                        Margin="10,0,0,4"
+                        FontSize="10"
+                        FontWeight="Bold"
+                        Foreground="#5b6675"
+                        Text="ESTADO" />
+                    <TextBlock
+                        Margin="10,0"
+                        FontSize="11"
+                        Foreground="#9aa7b6"
+                        Text="{Binding EstadoTexto}"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        Margin="10,0"
+                        FontSize="10"
+                        Foreground="#5b6675"
+                        Text="{Binding InfoSistema}" />
                 </StackPanel>
             </Grid>
         </Border>
 
-        <!-- ═══ Contenido ═══ -->
+        <!--  ═══ Contenido ═══  -->
         <Grid>
-            <!-- ── Página 1 · Voces ── -->
-            <Grid Margin="24" IsVisible="{Binding Tab1Visible}" RowDefinitions="Auto,*">
-                <StackPanel Grid.Row="0" Spacing="2" Margin="0,0,0,16">
-                    <TextBlock Classes="pageTitle" Text="Voces"/>
-                    <TextBlock Classes="pageSub" Text="Graba o importa una voz una vez y reutilízala en todas tus síntesis."/>
+            <!--  ── Página 1 · Voces ──  -->
+            <Grid
+                Margin="20"
+                IsVisible="{Binding Tab1Visible}"
+                RowDefinitions="Auto,*">
+
+                <!--  Título "Voces"  -->
+                <StackPanel
+                    Grid.Row="0"
+                    Margin="0,0,0,16"
+                    Spacing="2">
+                    <TextBlock Classes="pageTitle" Text="Voces" />
+                    <TextBlock Classes="pageSub" Text="Graba o importa una voz una vez y reutilízala en todas tus síntesis." />
                 </StackPanel>
-                <Grid Grid.Row="1" ColumnDefinitions="1.05*,*" ColumnSpacing="16">
-                    <!-- Biblioteca -->
-                    <Border Grid.Column="0" Classes="card" Padding="0">
+
+                <!--  Contenedor"  -->
+                <Grid
+                    Grid.Row="1"
+                    ColumnDefinitions="*,420"
+                    ColumnSpacing="16">
+
+                    <!--  1. Biblioteca  -->
+                    <Border
+                        Grid.Column="0"
+                        Padding="0"
+                        Classes="card">
                         <DockPanel>
-                            <Grid DockPanel.Dock="Top" Margin="20,16,20,0" ColumnDefinitions="*,Auto">
-                                <TextBlock Grid.Column="0" Classes="cardTitle" Text="Mis voces" VerticalAlignment="Center"/>
-                                <TextBlock Grid.Column="1" FontSize="11" Foreground="#9aa7b6" VerticalAlignment="Center">
-                                    <Run Text="{Binding Voces.Count}"/><Run Text=" guardadas"/>
+                            <Grid
+                                Margin="20,16,20,0"
+                                ColumnDefinitions="*,Auto"
+                                DockPanel.Dock="Top">
+                                <TextBlock
+                                    Grid.Column="0"
+                                    VerticalAlignment="Center"
+                                    Classes="cardTitle"
+                                    Text="Mis voces" />
+                                <TextBlock
+                                    Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    FontSize="11"
+                                    Foreground="#9aa7b6">
+                                    <Run Text="{Binding Voces.Count}" /><Run Text=" guardadas" />
                                 </TextBlock>
                             </Grid>
-                            <ScrollViewer Padding="20,8,20,16">
-                                <StackPanel>
+                            <ScrollViewer Margin="20,8,20,16">
+                                <Grid>
+                                    <!--  Item de voces  -->
                                     <ItemsControl ItemsSource="{Binding Voces}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <Border Classes="item">
-                                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                                                        <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
-                                                            <TextBlock Text="{Binding Nombre}" FontWeight="Bold" Foreground="White" FontSize="13"/>
-                                                            <TextBlock FontSize="11" Foreground="#9aa7b6">
-                                                                <Run Text="{Binding Duracion}"/><Run Text=" s"/>
-                                                            </TextBlock>
-                                                            <TextBlock Text="{Binding Transcripcion}" FontSize="10" Foreground="#5b6675" TextTrimming="CharacterEllipsis" MaxWidth="280"/>
-                                                        </StackPanel>
-                                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                                            <Button Classes="ghost" Content="Usar →" Command="{Binding UseCommand}" CommandParameter="{Binding}" FontSize="11" Padding="10,6"/>
-                                                            <Button Classes="iconbtn" Content="▶" Command="{Binding PlayCommand}" CommandParameter="{Binding}" Background="#4f8cff" Foreground="White"/>
-                                                            <Button Classes="dangerGhost" Content="✕" Command="{Binding DeleteCommand}" CommandParameter="{Binding}"/>
-                                                        </StackPanel>
+                                                <Border Height="64" Classes="item">
+                                                    <Grid ColumnDefinitions="44,*,Auto" ColumnSpacing="8">
+
+														<Button
+                                                                Grid.Column="0"
+                                                                Padding="10,6"
+                                                                HorizontalAlignment="Center"
+                                                                VerticalAlignment="Center"
+                                                                HorizontalContentAlignment="Center"
+                                                                VerticalContentAlignment="Center"
+                                                                Background="#4f8cff"
+                                                                Classes="iconbtn"
+                                                                Command="{Binding PlayCommand}"
+                                                                CommandParameter="{Binding}"
+                                                                Content="▶"
+                                                                Foreground="White" />
+														
+                                                        <!--  Title Audio  -->
+                                                        <Grid
+                                                            Grid.Column="1"
+                                                            VerticalAlignment="Center"
+                                                            RowDefinitions="Auto, Auto"
+                                                            RowSpacing="5">
+                                                            <TextBlock
+                                                                Grid.Row="0"
+                                                                VerticalAlignment="Center"
+                                                                FontSize="13"
+                                                                FontWeight="Bold"
+                                                                Foreground="White"
+                                                                Text="{Binding Nombre}"
+                                                                TextTrimming="CharacterEllipsis"
+                                                                TextWrapping="NoWrap" />
+
+                                                            <Grid
+                                                                Grid.Row="1"
+                                                                ColumnDefinitions="Auto,*"
+                                                                ColumnSpacing="6">
+                                                                <TextBlock
+                                                                    FontSize="11"
+                                                                    Foreground="#9aa7b6"
+                                                                    Text="{Binding DuracionText}" />
+
+                                                                <TextBlock
+                                                                    Grid.Column="1"
+                                                                    VerticalAlignment="Center"
+                                                                    FontSize="10"
+                                                                    Foreground="#5b6675"
+                                                                    Text="{Binding Transcripcion}"
+                                                                    TextTrimming="CharacterEllipsis"
+                                                                    TextWrapping="NoWrap" />
+                                                            </Grid>
+                                                        </Grid>
+                                                       
+														<!--  Buttons  -->
+                                                        <Grid
+                                                            Grid.Column="2"
+                                                            VerticalAlignment="Center"
+                                                            ColumnDefinitions="Auto, 42">
+															<Button
+															  Padding="10,6"
+															  HorizontalAlignment="Center"
+															  VerticalAlignment="Center"
+															  HorizontalContentAlignment="Center"
+															  VerticalContentAlignment="Center"
+															  Classes="ghost"
+															  Command="{Binding UseCommand}"
+															  CommandParameter="{Binding}"
+															  Content="Usar →"
+															  FontSize="11" />
+                                                          
+                                                            
+                                                            <Button
+                                                                Grid.Column="1"
+                                                                Padding="10,6"
+                                                                HorizontalAlignment="Center"
+                                                                VerticalAlignment="Center"
+                                                                HorizontalContentAlignment="Center"
+                                                                VerticalContentAlignment="Center"
+                                                                Classes="dangerGhost"
+                                                                Command="{Binding DeleteCommand}"
+                                                                CommandParameter="{Binding}"
+                                                                Content="✕" />
+                                                        </Grid>
                                                     </Grid>
                                                 </Border>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
-                                    <TextBlock Classes="empty" IsVisible="{Binding !HayVoces}" Text="Aún no tienes voces.&#10;Graba una con el micrófono o importa un archivo →"/>
-                                </StackPanel>
+                                    <!--  Texto Cuando no hay voces  -->
+                                    <TextBlock
+                                        Classes="empty"
+                                        IsVisible="{Binding !HayVoces}"
+                                        Text="Aún no tienes voces.&#10;Graba una con el micrófono o importa un archivo →" />
+                                </Grid>
                             </ScrollViewer>
                         </DockPanel>
                     </Border>
-                    <!-- Nueva voz -->
+
+                    <!--  2. Nueva voz  -->
                     <ScrollViewer Grid.Column="1">
+                        <!--  Contenedor  -->
                         <Border Classes="card">
-                            <StackPanel Spacing="14">
-                                <TextBlock Classes="cardTitle" Text="Nueva voz"/>
-                                <StackPanel Spacing="6">
-                                    <TextBlock Classes="stepTitle" Text="1 · Graba tu voz"/>
-                                    <TextBlock Classes="hint" Text="10–15 segundos, una sola persona, sin ruido ni música."/>
-                                    <Button Classes="primary" Content="{Binding GrabarTexto}" Command="{Binding GrabarCommand}" Background="{Binding GrabarColor}" FontSize="15" Padding="16,12" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-                                    <TextBlock Text="{Binding Cronometro}" FontSize="14" FontWeight="Bold" Foreground="#4f8cff" HorizontalAlignment="Center"/>
-                                    <Border Height="40" Background="#0e1117" CornerRadius="8" Padding="6" BorderBrush="#2a323f" BorderThickness="1">
+                            <Grid RowDefinitions="Auto,Auto,*" RowSpacing="22">
+
+                                <!--  Bloque 1 Grabar Voz  -->
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="cardTitle" Text="Grabar voz" />
+                                    <TextBlock Classes="hint" Text="10–15 segundos, una sola persona, sin ruido ni música." />
+                                    <Button
+                                        Padding="16,12"
+                                        HorizontalAlignment="Stretch"
+                                        HorizontalContentAlignment="Center"
+                                        Background="{Binding GrabarColor}"
+                                        Classes="primary"
+                                        Command="{Binding GrabarCommand}"
+                                        Content="{Binding GrabarTexto}"
+                                        FontSize="15" />
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        FontSize="14"
+                                        FontWeight="Bold"
+                                        Foreground="#4f8cff"
+                                        Text="{Binding Cronometro}" />
+                                    <Border
+                                        Height="40"
+                                        Padding="6"
+                                        Background="#0e1117"
+                                        BorderBrush="#2a323f"
+                                        BorderThickness="1"
+                                        CornerRadius="8">
                                         <ItemsControl ItemsSource="{Binding LevelBars}">
                                             <ItemsControl.ItemsPanel>
                                                 <ItemsPanelTemplate>
-                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" VerticalAlignment="Center" Spacing="1"/>
+                                                    <StackPanel
+                                                        HorizontalAlignment="Stretch"
+                                                        VerticalAlignment="Center"
+                                                        Orientation="Horizontal"
+                                                        Spacing="1" />
                                                 </ItemsPanelTemplate>
                                             </ItemsControl.ItemsPanel>
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Border Background="#4f8cff" Width="3" HorizontalAlignment="Center" Height="{Binding}" CornerRadius="1" Margin="0,0,1,0"/>
+                                                    <Border
+                                                        Width="3"
+                                                        Height="{Binding}"
+                                                        Margin="0,0,1,0"
+                                                        HorizontalAlignment="Center"
+                                                        Background="#4f8cff"
+                                                        CornerRadius="1" />
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
                                         </ItemsControl>
                                     </Border>
+                                    <TextBox
+                                        FontSize="12"
+                                        PlaceholderText="Nombre de la voz (p. ej. «Narrador»)"
+                                        Text="{Binding NombreVoz}" />
+                                    <TextBox
+                                        Height="52"
+                                        AcceptsReturn="True"
+                                        FontSize="12"
+                                        PlaceholderText="Lo que dice el audio (mejora el parecido)"
+                                        Text="{Binding TranscripcionVoz}" />
+                                    <Button
+                                        Margin="0,2,0,0"
+                                        HorizontalAlignment="Right"
+                                        HorizontalContentAlignment="Center"
+                                        Classes="primary"
+                                        Command="{Binding GuardarVozCommand}"
+                                        Content="Agregar a Voces" />
                                 </StackPanel>
-                                <StackPanel Spacing="6">
-                                    <TextBlock Classes="stepTitle" Text="2 · Nombra y guarda"/>
-                                    <TextBox Text="{Binding NombreVoz}" PlaceholderText="Nombre de la voz (p. ej. «Narrador»)" FontSize="12"/>
-                                    <TextBox Text="{Binding TranscripcionVoz}" PlaceholderText="Lo que dice el audio (mejora el parecido)" FontSize="12" AcceptsReturn="True" Height="52"/>
-                                    <Button Classes="primary" Content="Guardar voz" Command="{Binding GuardarVozCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+
+                                <!--  Bloque 2 Usar archivo de audio  -->
+                                <StackPanel Grid.Row="1" Spacing="8">
+                                    <TextBlock Classes="cardTitle" Text="Usar archivo de audio" />
+                                    <TextBlock Classes="hint" Text="WAV, MP3, M4A, OGG… se normaliza solo al importar." />
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                        <TextBox
+                                            Grid.Column="0"
+                                            FontSize="11"
+                                            PlaceholderText="Ningún archivo elegido…"
+                                            Text="{Binding ArchivoSeleccionado}" />
+                                        <Button
+                                            Grid.Column="1"
+                                            Classes="ghost"
+                                            Click="ExaminarArchivo_Click"
+                                            Content="Examinar…" />
+                                    </Grid>
+                                    <TextBox
+                                        FontSize="12"
+                                        PlaceholderText="Nombre de la voz (p. ej. «Narrador»)"
+                                        Text="{Binding NombreArchivo}" />
+                                    <TextBox
+                                        Height="52"
+                                        AcceptsReturn="True"
+                                        FontSize="12"
+                                        PlaceholderText="Lo que dice el audio (mejora el parecido)"
+                                        Text="{Binding TranscripcionArchivo}" />
+                                    <Button
+                                        Margin="0,2,0,0"
+                                        HorizontalAlignment="Right"
+                                        HorizontalContentAlignment="Center"
+                                        Classes="primary"
+                                        Command="{Binding SubirArchivoCommand}"
+                                        Content="Agregar a Voces" />
                                 </StackPanel>
-                                <StackPanel Spacing="6">
-                                    <TextBlock Classes="stepTitle" Text="3 · …o importa un archivo"/>
-                                    <TextBox Text="{Binding ArchivoSeleccionado}" PlaceholderText="Pega la ruta: C:\audios\voz.wav" FontSize="11"/>
-                                    <Button Classes="ghost" Content="⬆ Importar archivo" Command="{Binding SubirArchivoCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-                                </StackPanel>
-                                <Border Background="#0e1117" CornerRadius="8" Padding="10" BorderBrush="#2a323f" BorderThickness="1">
-                                    <TextBlock Classes="hint" Text="💡 La transcripción mejora el parecido. Para máxima fidelidad, baja la temperatura a 0,6–0,7 en Sintetizar."/>
+
+                                <!--  Bloque 3 · Consejo  -->
+                                <Border
+                                    Grid.Row="2"
+                                    Padding="12"
+                                    VerticalAlignment="Center"
+                                    Background="#0e1117"
+                                    BorderBrush="#2a323f"
+                                    BorderThickness="1"
+                                    CornerRadius="8">
+                                    <TextBlock Classes="hint" Text="💡 Para máxima fidelidad: referencia limpia de 10–15 s con su transcripción, y temperatura a 0,6–0,7 en Sintetizar." />
                                 </Border>
-                            </StackPanel>
+                            </Grid>
                         </Border>
                     </ScrollViewer>
                 </Grid>
             </Grid>
 
-            <!-- ── Página 2 · Sintetizar ── -->
-            <Grid Margin="24" IsVisible="{Binding Tab2Visible}" RowDefinitions="Auto,*">
-                <StackPanel Grid.Row="0" Spacing="2" Margin="0,0,0,16">
-                    <TextBlock Classes="pageTitle" Text="Sintetizar"/>
-                    <TextBlock Classes="pageSub" Text="Elige la voz, escribe el texto y genera. Los textos largos se trocean y se unen solos."/>
+            <!--  ── Página 2 · Sintetizar ──  -->
+            <Grid
+                Margin="20"
+                IsVisible="{Binding Tab2Visible}"
+                RowDefinitions="Auto,*">
+                <!--  Título  -->
+                <StackPanel
+                    Grid.Row="0"
+                    Margin="0,0,0,16"
+                    Spacing="2">
+                    <TextBlock Classes="pageTitle" Text="Sintetizar" />
+                    <TextBlock Classes="pageSub" Text="Elige la voz, escribe el texto y genera. Los textos largos se trocean y se unen solos." />
                 </StackPanel>
+
+                <!--  Contenedor  -->
                 <ScrollViewer Grid.Row="1">
                     <StackPanel Spacing="16">
                         <Border Classes="card">
                             <StackPanel Spacing="10">
-                                <TextBlock Classes="cardTitle" Text="1 · Qué quieres decir"/>
-                                <TextBox Text="{Binding Texto}" PlaceholderText="Escribe aquí el texto…" FontSize="14" AcceptsReturn="True" MinHeight="110" Padding="12" Background="#0e1117" Foreground="#e6edf3" BorderBrush="#2a323f" BorderThickness="1" CornerRadius="8"/>
+                                <!--  1. Introducir texto  -->
+                                <TextBlock Classes="cardTitle" Text="1 · Qué quieres decir" />
+                                <TextBox
+                                    Height="110"
+                                    Padding="12"
+                                    AcceptsReturn="True"
+                                    Background="#0e1117"
+                                    BorderBrush="#2a323f"
+                                    FontSize="14"
+                                    Foreground="#e6edf3"
+                                    PlaceholderText="Escribe aquí el texto…"
+                                    Text="{Binding Texto}"
+                                    TextWrapping="Wrap" />
+
                                 <Grid ColumnDefinitions="*,Auto">
-                                    <TextBlock Grid.Column="0" FontSize="11" Foreground="#5b6675" VerticalAlignment="Center">
-                                        <Run Text="{Binding Texto.Length}"/><Run Text=" caracteres"/>
+                                    <TextBlock
+                                        Grid.Column="0"
+                                        VerticalAlignment="Center"
+                                        FontSize="11"
+                                        Foreground="#5b6675">
+                                        <Run Text="{Binding Texto.Length}" />
+                                        <Run Text=" caracteres" />
                                     </TextBlock>
-                                    <TextBlock Grid.Column="1" FontSize="11" Foreground="#5b6675" VerticalAlignment="Center">
-                                        <Run Text="Voz: "/><Run Text="{Binding VozSeleccionada.Nombre}"/>
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        VerticalAlignment="Center"
+                                        FontSize="11"
+                                        Foreground="#5b6675">
+                                        <Run Text="Voz: " /><Run Text="{Binding VozSeleccionada.Nombre}" />
                                     </TextBlock>
                                 </Grid>
                             </StackPanel>
                         </Border>
                         <Border Classes="card">
                             <StackPanel Spacing="10">
-                                <TextBlock Classes="cardTitle" Text="2 · Con qué voz y cómo"/>
+                                <TextBlock Classes="cardTitle" Text="2 · Con qué voz y cómo" />
                                 <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="12">
                                     <StackPanel Grid.Column="0" Spacing="4">
-                                        <TextBlock Classes="fieldLabel" Text="VOZ"/>
-                                        <ComboBox ItemsSource="{Binding Voces}" SelectedItem="{Binding VozSeleccionada}" PlaceholderText="Defecto del modelo" HorizontalAlignment="Stretch">
+                                        <TextBlock Classes="fieldLabel" Text="VOZ" />
+                                        <ComboBox
+                                            HorizontalAlignment="Stretch"
+                                            ItemsSource="{Binding VocesParaElegir}"
+                                            SelectedItem="{Binding VozSeleccionada}">
                                             <ComboBox.ItemTemplate>
                                                 <DataTemplate>
-                                                    <TextBlock Text="{Binding Nombre}"/>
+                                                    <TextBlock Text="{Binding Nombre}" />
                                                 </DataTemplate>
                                             </ComboBox.ItemTemplate>
                                         </ComboBox>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Spacing="4">
-                                        <TextBlock Classes="fieldLabel" Text="IDIOMA"/>
-                                        <ComboBox ItemsSource="{Binding Idiomas}" SelectedItem="{Binding IdiomaSeleccionado}" HorizontalAlignment="Stretch"/>
+                                        <TextBlock Classes="fieldLabel" Text="IDIOMA" />
+                                        <ComboBox
+                                            HorizontalAlignment="Stretch"
+                                            ItemsSource="{Binding Idiomas}"
+                                            SelectedItem="{Binding IdiomaSeleccionado}" />
                                     </StackPanel>
                                     <StackPanel Grid.Column="2" Spacing="4">
-                                        <TextBlock Classes="fieldLabel" Text="PROCESAMIENTO"/>
-                                        <ComboBox ItemsSource="{Binding Dispositivos}" SelectedItem="{Binding DispositivoSeleccionado}" HorizontalAlignment="Stretch"/>
+                                        <TextBlock Classes="fieldLabel" Text="PROCESAMIENTO" />
+                                        <ComboBox
+                                            HorizontalAlignment="Stretch"
+                                            ItemsSource="{Binding Dispositivos}"
+                                            SelectedItem="{Binding DispositivoSeleccionado}" />
                                     </StackPanel>
                                     <StackPanel Grid.Column="3" Spacing="4">
-                                        <TextBlock Classes="fieldLabel" Text="MOTOR"/>
-                                        <ComboBox ItemsSource="{Binding Motores}" SelectedItem="{Binding MotorSeleccionado}" PlaceholderText="auto" HorizontalAlignment="Stretch"/>
+                                        <TextBlock Classes="fieldLabel" Text="MOTOR" />
+                                        <ComboBox
+                                            HorizontalAlignment="Stretch"
+                                            ItemsSource="{Binding Motores}"
+                                            PlaceholderText="auto"
+                                            SelectedItem="{Binding MotorSeleccionado}" />
                                     </StackPanel>
                                 </Grid>
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Text="{Binding InfoMotor}" FontSize="11" Foreground="#9aa7b6" VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="640"/>
-                                    <Button Classes="ghost" Content="⬇ llama.cpp" Command="{Binding DescargarLlamaCommand}" FontSize="11"/>
+                                    <TextBlock
+                                        MaxWidth="640"
+                                        VerticalAlignment="Center"
+                                        FontSize="11"
+                                        Foreground="#9aa7b6"
+                                        Text="{Binding InfoMotor}"
+                                        TextWrapping="Wrap" />
+                                    <Button
+                                        Classes="ghost"
+                                        Command="{Binding DescargarLlamaCommand}"
+                                        Content="⬇ llama.cpp"
+                                        FontSize="11" />
                                 </StackPanel>
-                                <Expander Header="⚙ Ajustes avanzados" Background="#0e1117" BorderBrush="#2a323f" BorderThickness="1" CornerRadius="10">
-                                    <StackPanel Spacing="10" Margin="16">
+                                <Expander
+                                    Background="#0e1117"
+                                    BorderBrush="#2a323f"
+                                    BorderThickness="1"
+                                    CornerRadius="10"
+                                    Header="⚙ Ajustes avanzados">
+                                    <StackPanel Margin="16" Spacing="10">
+                                        <!--  Temperatura  -->
                                         <StackPanel Orientation="Horizontal" Spacing="8">
-                                            <TextBlock Text="Temperatura" Classes="fieldLabel" Width="140" VerticalAlignment="Center"/>
-                                            <Slider Value="{Binding Temperatura}" Minimum="0.1" Maximum="1.5" Width="200"/>
-                                            <TextBlock Text="{Binding Temperatura}" FontSize="11" Foreground="#9aa7b6" VerticalAlignment="Center"/>
-                                            <TextBlock Classes="hint" Text="0,6 estable · 1,1 expresiva" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                            <TextBlock
+                                                Width="140"
+                                                VerticalAlignment="Center"
+                                                Classes="fieldLabel"
+                                                Text="Temperatura" />
+                                            <Slider
+                                                Width="200"
+                                                Maximum="1.5"
+                                                Minimum="0.1"
+                                                Value="{Binding Temperatura}" />
+                                            <TextBlock
+                                                VerticalAlignment="Center"
+                                                FontSize="11"
+                                                Foreground="#9aa7b6"
+                                                Text="{Binding Temperatura}" />
+                                            <TextBlock
+                                                Margin="8,0,0,0"
+                                                VerticalAlignment="Center"
+                                                Classes="hint"
+                                                Text="0,6 estable · 1,1 expresiva" />
                                         </StackPanel>
+                                        <!--  Top-p  -->
                                         <StackPanel Orientation="Horizontal" Spacing="8">
-                                            <TextBlock Text="Top-P" Classes="fieldLabel" Width="140" VerticalAlignment="Center"/>
-                                            <Slider Value="{Binding TopP}" Minimum="0.1" Maximum="1" Width="200"/>
-                                            <TextBlock Text="{Binding TopP}" FontSize="11" Foreground="#9aa7b6" VerticalAlignment="Center"/>
-                                            <TextBlock Text="Top-K" Classes="fieldLabel" Width="60" VerticalAlignment="Center" Margin="16,0,0,0"/>
-                                            <TextBox Text="{Binding TopK}" Width="70"/>
-                                            <TextBlock Text="Semilla" Classes="fieldLabel" Width="60" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                                            <TextBox Text="{Binding Semilla}" Width="70"/>
-                                            <TextBlock Classes="hint" Text="-1 = azar" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                            <TextBlock
+                                                Width="140"
+                                                VerticalAlignment="Center"
+                                                Classes="fieldLabel"
+                                                Text="Top-P" />
+                                            <Slider
+                                                Width="200"
+                                                Maximum="1"
+                                                Minimum="0.1"
+                                                Value="{Binding TopP}" />
+                                            <TextBlock
+                                                VerticalAlignment="Center"
+                                                FontSize="11"
+                                                Foreground="#9aa7b6"
+                                                Text="{Binding TopP}" />
+
+                                            <!--  Top-k  -->
+                                            <TextBlock
+                                                Width="60"
+                                                Margin="16,0,0,0"
+                                                VerticalAlignment="Center"
+                                                Classes="fieldLabel"
+                                                Text="Top-K" />
+                                            <TextBox
+                                                Width="70"
+                                                Height="26"
+                                                VerticalContentAlignment="Center"
+                                                Text="{Binding TopK}" />
+
+                                            <!--  Semilla  -->
+                                            <TextBlock
+                                                Width="60"
+                                                Margin="8,0,0,0"
+                                                VerticalAlignment="Center"
+                                                Classes="fieldLabel"
+                                                Text="Semilla" />
+                                            <TextBox
+                                                Width="70"
+                                                Height="26"
+                                                VerticalContentAlignment="Center"
+                                                Text="{Binding Semilla}" />
+                                            <TextBlock
+                                                Margin="4,0,0,0"
+                                                VerticalAlignment="Center"
+                                                Classes="hint"
+                                                Text="-1 = azar" />
                                         </StackPanel>
+
+                                        <!--  Caract./Bloque  -->
                                         <StackPanel Orientation="Horizontal" Spacing="8">
-                                            <TextBlock Text="Caract./bloque" Classes="fieldLabel" Width="140" VerticalAlignment="Center"/>
-                                            <TextBox Text="{Binding CaracteresBloque}" Width="70"/>
-                                            <TextBlock Text="Pausa (ms)" Classes="fieldLabel" Width="80" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                                            <TextBox Text="{Binding PausaMs}" Width="70"/>
-                                            <TextBlock Text="Máx.frames" Classes="fieldLabel" Width="80" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                                            <TextBox Text="{Binding MaxFrames}" Width="70"/>
-                                            <TextBlock Text="Hilos" Classes="fieldLabel" Width="50" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                                            <TextBox Text="{Binding Hilos}" Width="60"/>
-                                            <TextBlock Classes="hint" Text="0 = auto" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                            <TextBlock
+                                                Width="140"
+                                                VerticalAlignment="Center"
+                                                Classes="fieldLabel"
+                                                Text="Caract./bloque" />
+                                            <TextBox Width="70" Text="{Binding CaracteresBloque}" />
+                                            <!--  Pausa  -->
+                                            <TextBlock
+                                                Width="80"
+                                                Margin="8,0,0,0"
+                                                VerticalAlignment="Center"
+                                                Classes="fieldLabel"
+                                                Text="Pausa (ms)" />
+                                            <TextBox
+                                                Width="70"
+                                                Height="26"
+                                                VerticalContentAlignment="Center"
+                                                Text="{Binding PausaMs}" />
+                                            <!--  Frames  -->
+                                            <TextBlock
+                                                Width="80"
+                                                Margin="8,0,0,0"
+                                                VerticalAlignment="Center"
+                                                Classes="fieldLabel"
+                                                Text="Máx.frames" />
+                                            <TextBox
+                                                Width="70"
+                                                Height="26"
+                                                VerticalContentAlignment="Center"
+                                                Text="{Binding MaxFrames}" />
+                                            <!--  Hilos  -->
+                                            <TextBlock
+                                                Width="50"
+                                                Margin="8,0,0,0"
+                                                VerticalAlignment="Center"
+                                                Classes="fieldLabel"
+                                                Text="Hilos" />
+                                            <TextBox
+                                                Width="60"
+                                                Height="26"
+                                                VerticalContentAlignment="Center"
+                                                Text="{Binding Hilos}" />
+                                            <TextBlock
+                                                Margin="4,0,0,0"
+                                                VerticalAlignment="Center"
+                                                Classes="hint"
+                                                Text="0 = auto" />
                                         </StackPanel>
+                                        <Grid Margin="0,12,0,0" ColumnDefinitions="*,Auto">
+                                            <TextBlock
+                                                Grid.Column="0"
+                                                VerticalAlignment="Center"
+                                                Classes="hint"
+                                                Text="Por defecto llama.cpp: temp 0,8 · top-p 0,95 · top-k 40 · semilla -1 · 1200 frames · 280 car./bloque · pausa 150 ms · hilos 0." />
+                                            <Button
+                                                Grid.Column="1"
+                                                Classes="ghost"
+                                                Command="{Binding RestablecerAjustesCommand}"
+                                                Content="↺ Restablecer valores"
+                                                FontSize="11" />
+                                        </Grid>
                                     </StackPanel>
                                 </Expander>
                             </StackPanel>
                         </Border>
+
+                        <!--  Generar Voz  -->
                         <Border Classes="card">
                             <StackPanel Spacing="10">
-                                <TextBlock Classes="cardTitle" Text="3 · Genera"/>
+                                <TextBlock Classes="cardTitle" Text="3 · Generar Voz" />
                                 <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
-                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="6">
-                                        <TextBlock Text="{Binding ProgresoTexto}" FontSize="13" Foreground="#9aa7b6"/>
-                                        <ProgressBar Minimum="0" Maximum="100" Value="{Binding ProgresoPorcentaje}" Height="8" Background="#0e1117" CornerRadius="4"/>
+                                    <StackPanel
+                                        Grid.Column="0"
+                                        VerticalAlignment="Center"
+                                        Spacing="6">
+                                        <TextBlock
+                                            FontSize="13"
+                                            Foreground="#9aa7b6"
+                                            Text="{Binding ProgresoTexto}" />
+                                        <ProgressBar
+                                            Height="8"
+                                            Background="#0e1117"
+                                            CornerRadius="4"
+                                            Maximum="100"
+                                            Minimum="0"
+                                            Value="{Binding ProgresoPorcentaje}" />
                                     </StackPanel>
-                                    <Button Grid.Column="1" Classes="primary" Content="▶ Generar audio" Command="{Binding GenerarCommand}" IsEnabled="{Binding PuedeGenerar}" FontSize="15" Padding="28,12" VerticalAlignment="Center"/>
-                                    <Button Grid.Column="2" Classes="danger" Content="Cancelar" Command="{Binding CancelarGeneracionCommand}" IsVisible="{Binding MostrarCancelar}" VerticalAlignment="Center"/>
+                                    <Button
+                                        Grid.Column="1"
+                                        Padding="28,12"
+                                        VerticalAlignment="Center"
+                                        Classes="primary"
+                                        Command="{Binding GenerarCommand}"
+                                        Content="▶ Generar audio"
+                                        FontSize="15"
+                                        IsEnabled="{Binding PuedeGenerar}" />
+                                    <Button
+                                        Grid.Column="2"
+                                        VerticalAlignment="Center"
+                                        Classes="danger"
+                                        Command="{Binding CancelarGeneracionCommand}"
+                                        Content="Cancelar"
+                                        IsVisible="{Binding MostrarCancelar}" />
                                 </Grid>
-                                <TextBlock Text="{Binding ResultadoInfo}" FontSize="12" Foreground="#3fb950" TextWrapping="Wrap" IsVisible="{Binding !!ResultadoInfo}"/>
-                                <Border Background="#0e1117" CornerRadius="8" Padding="10" BorderBrush="#2a323f" BorderThickness="1" Height="120">
+                                <TextBlock
+                                    FontSize="12"
+                                    Foreground="#3fb950"
+                                    IsVisible="{Binding !!ResultadoInfo}"
+                                    Text="{Binding ResultadoInfo}"
+                                    TextWrapping="Wrap" />
+                                <Border
+                                    Height="120"
+                                    Padding="10"
+                                    Background="#0e1117"
+                                    BorderBrush="#2a323f"
+                                    BorderThickness="1"
+                                    CornerRadius="8">
                                     <ScrollViewer>
                                         <ItemsControl ItemsSource="{Binding Registro}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
-                                                    <TextBlock Text="{Binding}" FontSize="10" Foreground="#9aa7b6" FontFamily="Consolas,Menlo,monospace" TextWrapping="Wrap"/>
+                                                    <SelectableTextBlock
+                                                        FontFamily="Consolas,Menlo,monospace"
+                                                        FontSize="10"
+                                                        Foreground="#9aa7b6"
+                                                        Text="{Binding}"
+                                                        TextWrapping="Wrap" />
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
                                         </ItemsControl>
@@ -391,18 +914,31 @@
                 </ScrollViewer>
             </Grid>
 
-            <!-- ── Página 3 · Historial ── -->
-            <Grid Margin="24" IsVisible="{Binding Tab3Visible}" RowDefinitions="Auto,*">
-                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+            <!--  ── Página 3 · Historial ──  -->
+            <Grid
+                Margin="20"
+                IsVisible="{Binding Tab3Visible}"
+                RowDefinitions="Auto,*">
+                <Grid
+                    Grid.Row="0"
+                    Margin="0,0,0,16"
+                    ColumnDefinitions="*,Auto">
                     <StackPanel Grid.Column="0" Spacing="2">
-                        <TextBlock Classes="pageTitle" Text="Historial"/>
-                        <TextBlock Classes="pageSub" Text="Todo lo generado queda aquí, con reproductor y descarga."/>
+                        <TextBlock Classes="pageTitle" Text="Historial" />
+                        <TextBlock Classes="pageSub" Text="Todo lo generado queda aquí, con reproductor y descarga." />
                     </StackPanel>
-                    <TextBlock Grid.Column="1" FontSize="11" Foreground="#9aa7b6" VerticalAlignment="Center">
-                        <Run Text="{Binding Generaciones.Count}"/><Run Text=" audios"/>
+                    <TextBlock
+                        Grid.Column="1"
+                        VerticalAlignment="Center"
+                        FontSize="11"
+                        Foreground="#9aa7b6">
+                        <Run Text="{Binding Generaciones.Count}" /><Run Text=" audios" />
                     </TextBlock>
                 </Grid>
-                <Border Grid.Row="1" Classes="card" Padding="12,12,12,12">
+                <Border
+                    Grid.Row="1"
+                    Padding="12,12,12,12"
+                    Classes="card">
                     <ScrollViewer>
                         <StackPanel>
                             <ItemsControl ItemsSource="{Binding Generaciones}">
@@ -410,78 +946,185 @@
                                     <DataTemplate>
                                         <Border Classes="item">
                                             <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
-                                                <Button Classes="iconbtn" Content="▶" Command="{Binding PlayHistCommand}" CommandParameter="{Binding}" Background="#4f8cff" Foreground="White"/>
-                                                <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding Texto}" FontSize="13" Foreground="White" TextTrimming="CharacterEllipsis"/>
+                                                <Button
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    HorizontalContentAlignment="Center"
+                                                    VerticalContentAlignment="Center"
+                                                    Background="#4f8cff"
+                                                    Classes="iconbtn"
+                                                    Command="{Binding PlayHistCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    Content="▶"
+                                                    Foreground="White"
+                                                    ToolTip.Tip="Escuchar" />
+                                                <StackPanel
+                                                    Grid.Column="1"
+                                                    VerticalAlignment="Center"
+                                                    Spacing="2">
+                                                    <TextBlock
+                                                        FontSize="13"
+                                                        Foreground="White"
+                                                        Text="{Binding Texto}"
+                                                        TextTrimming="CharacterEllipsis" />
                                                     <TextBlock FontSize="11" Foreground="#9aa7b6">
-                                                        <Run Text="{Binding FechaFormateada}"/><Run Text=" · "/><Run Text="{Binding Duracion}"/><Run Text=" s"/>
+                                                        <Run Text="{Binding FechaFormateada}" /><Run Text=" · " /><Run Text="{Binding Duracion}" /><Run Text=" s" />
                                                     </TextBlock>
                                                 </StackPanel>
-                                                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                                    <Button Classes="iconbtn" Content="⬇" Command="{Binding DescargarCommand}" CommandParameter="{Binding}" Background="#1e2530" Foreground="#e6edf3" BorderBrush="#2a323f" BorderThickness="1"/>
-                                                    <Button Classes="dangerGhost" Content="✕" Command="{Binding DeleteHistCommand}" CommandParameter="{Binding}"/>
+                                                <StackPanel
+                                                    Grid.Column="2"
+                                                    VerticalAlignment="Center"
+                                                    Orientation="Horizontal"
+                                                    Spacing="6">
+                                                    <Button
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center"
+                                                        HorizontalContentAlignment="Center"
+                                                        VerticalContentAlignment="Center"
+                                                        Background="#1e2530"
+                                                        BorderBrush="#2a323f"
+                                                        BorderThickness="1"
+                                                        Classes="iconbtn"
+                                                        Command="{Binding DescargarCommand}"
+                                                        CommandParameter="{Binding}"
+                                                        Content="⬇"
+                                                        Foreground="#e6edf3"
+                                                        ToolTip.Tip="Descargar al escritorio" />
+                                                    <Button
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center"
+                                                        HorizontalContentAlignment="Center"
+                                                        VerticalContentAlignment="Center"
+                                                        Background="#1e2530"
+                                                        BorderBrush="#2a323f"
+                                                        BorderThickness="1"
+                                                        Classes="iconbtn"
+                                                        Command="{Binding SaveVozCommand}"
+                                                        CommandParameter="{Binding}"
+                                                        Content="＋"
+                                                        Foreground="#3fb950"
+                                                        ToolTip.Tip="Guardar en Voces para reutilizarla" />
+                                                    <Button
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center"
+                                                        HorizontalContentAlignment="Center"
+                                                        VerticalContentAlignment="Center"
+                                                        Classes="dangerGhost"
+                                                        Command="{Binding DeleteHistCommand}"
+                                                        CommandParameter="{Binding}"
+                                                        Content="✕"
+                                                        ToolTip.Tip="Borrar" />
                                                 </StackPanel>
                                             </Grid>
                                         </Border>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-                            <TextBlock Classes="empty" IsVisible="{Binding !HayHistorial}" Text="Aún no hay audios.&#10;Ve a Sintetizar y pulsa «Generar audio» →"/>
+                            <TextBlock
+                                Classes="empty"
+                                IsVisible="{Binding !HayHistorial}"
+                                Text="Aún no hay audios.&#10;Ve a Sintetizar y pulsa «Generar audio» →" />
                         </StackPanel>
                     </ScrollViewer>
                 </Border>
             </Grid>
 
-            <!-- ── Página 4 · Modelos ── -->
-            <Grid Margin="24" IsVisible="{Binding Tab4Visible}" RowDefinitions="Auto,*">
-                <StackPanel Grid.Row="0" Spacing="2" Margin="0,0,0,16">
-                    <TextBlock Classes="pageTitle" Text="Modelos"/>
-                    <TextBlock Classes="pageSub" Text="Descarga los pesos GGUF una sola vez; después todo funciona sin conexión."/>
+            <!--  ── Página 4 · Modelos ──  -->
+            <Grid
+                Margin="20"
+                IsVisible="{Binding Tab4Visible}"
+                RowDefinitions="Auto,*">
+                <StackPanel
+                    Grid.Row="0"
+                    Margin="0,0,0,16"
+                    Spacing="2">
+                    <TextBlock Classes="pageTitle" Text="Modelos" />
+                    <TextBlock Classes="pageSub" Text="Descarga los pesos GGUF una sola vez; después todo funciona sin conexión." />
                 </StackPanel>
                 <ScrollViewer Grid.Row="1">
                     <StackPanel Spacing="16">
                         <Border Classes="card">
                             <StackPanel Spacing="8">
-                                <TextBlock Classes="cardTitle" Text="Estado"/>
-                                <TextBlock Text="{Binding ModeloEstado}" FontSize="12" Foreground="#e6edf3" TextWrapping="Wrap"/>
-                                <TextBlock Classes="hint" Text="Hacen falta DOS archivos: el modelo principal y su mmproj (vocoder). Sin ambos no hay síntesis con el motor llama."/>
+                                <TextBlock Classes="cardTitle" Text="Estado" />
+                                <TextBlock
+                                    FontSize="12"
+                                    Foreground="#e6edf3"
+                                    Text="{Binding ModeloEstado}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock Classes="hint" Text="Hacen falta DOS archivos: el modelo principal y su mmproj (vocoder). Sin ambos no hay síntesis con el motor llama." />
                             </StackPanel>
                         </Border>
                         <Border Classes="card">
                             <StackPanel Spacing="10">
-                                <TextBlock Classes="cardTitle" Text="Descargar pesos"/>
+                                <TextBlock Classes="cardTitle" Text="Descargar pesos" />
                                 <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                                     <StackPanel Grid.Column="0" Spacing="4">
-                                        <TextBlock Classes="fieldLabel" Text="MODELO PRINCIPAL"/>
-                                        <ComboBox ItemsSource="{Binding ModeloOpciones}" SelectedItem="{Binding ModeloSeleccionado}" HorizontalAlignment="Stretch">
+                                        <TextBlock Classes="fieldLabel" Text="MODELO PRINCIPAL" />
+                                        <ComboBox
+                                            HorizontalAlignment="Stretch"
+                                            ItemsSource="{Binding ModeloOpciones}"
+                                            SelectedItem="{Binding ModeloSeleccionado}">
                                             <ComboBox.ItemTemplate>
                                                 <DataTemplate>
-                                                    <TextBlock Text="{Binding Etiqueta}"/>
+                                                    <TextBlock Text="{Binding Etiqueta}" />
                                                 </DataTemplate>
                                             </ComboBox.ItemTemplate>
                                         </ComboBox>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Spacing="4">
-                                        <TextBlock Classes="fieldLabel" Text="VOCODER (MMPROJ)"/>
-                                        <ComboBox ItemsSource="{Binding MmprojOpciones}" SelectedItem="{Binding MmprojSeleccionado}" HorizontalAlignment="Stretch">
+                                        <TextBlock Classes="fieldLabel" Text="VOCODER (MMPROJ)" />
+                                        <ComboBox
+                                            HorizontalAlignment="Stretch"
+                                            ItemsSource="{Binding MmprojOpciones}"
+                                            SelectedItem="{Binding MmprojSeleccionado}">
                                             <ComboBox.ItemTemplate>
                                                 <DataTemplate>
-                                                    <TextBlock Text="{Binding Etiqueta}"/>
+                                                    <TextBlock Text="{Binding Etiqueta}" />
                                                 </DataTemplate>
                                             </ComboBox.ItemTemplate>
                                         </ComboBox>
                                     </StackPanel>
                                 </Grid>
                                 <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
-                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="6">
-                                        <TextBlock Text="{Binding ModeloProgresoTexto}" FontSize="12" Foreground="#9aa7b6" TextWrapping="Wrap"/>
-                                        <ProgressBar Minimum="0" Maximum="100" Value="{Binding ModeloProgreso}" Height="8" Background="#0e1117" CornerRadius="4"/>
+                                    <StackPanel
+                                        Grid.Column="0"
+                                        VerticalAlignment="Center"
+                                        Spacing="6">
+                                        <TextBlock
+                                            FontSize="12"
+                                            Foreground="#9aa7b6"
+                                            Text="{Binding ModeloProgresoTexto}"
+                                            TextWrapping="Wrap" />
+                                        <ProgressBar
+                                            Height="8"
+                                            Background="#0e1117"
+                                            CornerRadius="4"
+                                            Maximum="100"
+                                            Minimum="0"
+                                            Value="{Binding ModeloProgreso}" />
                                     </StackPanel>
-                                    <Button Grid.Column="1" Classes="primary" Content="⬇ Descargar" Command="{Binding DescargarModeloCommand}" IsEnabled="{Binding !DescargandoModelo}" VerticalAlignment="Center"/>
-                                    <Button Grid.Column="2" Classes="danger" Content="Cancelar" Command="{Binding CancelarDescargaModeloCommand}" IsVisible="{Binding DescargandoModelo}" VerticalAlignment="Center"/>
+                                    <Button
+                                        Grid.Column="1"
+                                        VerticalAlignment="Center"
+                                        Classes="primary"
+                                        Command="{Binding DescargarModeloCommand}"
+                                        Content="⬇ Descargar"
+                                        IsEnabled="{Binding !DescargandoModelo}" />
+                                    <Button
+                                        Grid.Column="2"
+                                        VerticalAlignment="Center"
+                                        Classes="danger"
+                                        Command="{Binding CancelarDescargaModeloCommand}"
+                                        Content="Cancelar"
+                                        IsVisible="{Binding DescargandoModelo}" />
                                 </Grid>
-                                <Border Background="#0e1117" CornerRadius="8" Padding="10" BorderBrush="#2a323f" BorderThickness="1">
-                                    <TextBlock Classes="hint" Text="💡 ~1,5 GB en total con los valores por defecto. La descarga es reanudable y verifica el SHA-256 al terminar, igual que en Clonar-voz."/>
+                                <Border
+                                    Padding="10"
+                                    Background="#0e1117"
+                                    BorderBrush="#2a323f"
+                                    BorderThickness="1"
+                                    CornerRadius="8">
+                                    <TextBlock Classes="hint" Text="💡 ~1,5 GB en total con los valores por defecto. La descarga es reanudable y verifica el SHA-256 al terminar, igual que en Clonar-voz." />
                                 </Border>
                             </StackPanel>
                         </Border>

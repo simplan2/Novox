@@ -60,11 +60,17 @@ public class VoiceLibraryService : IVoiceLibraryService
         var carpeta = Path.Combine(_vocesDir, id);
         Directory.CreateDirectory(carpeta);
 
+        // Normaliza a WAV PCM mono 16 kHz (lo que espera el modelo).
+        // Sin esto, un mp3/44.1kHz/estéreo genera un embedding inútil.
+        MemoryStream normalizado;
+        try { normalizado = AudioNormalizer.Normalizar16kMono(audioStream); }
+        catch (Exception ex) { throw new InvalidOperationException("No se pudo leer ese audio: " + ex.Message); }
+
         var audioPath = Path.Combine(carpeta, "referencia.wav");
-        audioStream.Position = 0;
+        normalizado.Position = 0;
         await using (var file = File.Create(audioPath))
         {
-            audioStream.CopyTo(file);
+            normalizado.CopyTo(file);
         }
 
         var meta = new VozInfo

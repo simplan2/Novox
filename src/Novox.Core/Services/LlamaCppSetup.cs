@@ -50,8 +50,33 @@ public sealed class LlamaCppSetup
         return new Estado(bin, true, ver, ok, ok ? "" : "Actualiza: winget upgrade ggml.llamacpp (se necesita --mmproj)");
     }
 
-    public static string BuscarBinario()
+    /// <summary>
+    /// Busca llama-tts: primero en la carpeta que usa Novox
+    /// (&lt;modelos&gt;/bin, donde lo deja el botón ⬇), luego PATH y rutas
+    /// habituales (winget, brew, /usr, C:\llama.cpp).
+    /// </summary>
+    public static string BuscarBinario(string? carpetaModelos = null)
     {
+        var exe = OperatingSystem.IsWindows() ? "llama-tts.exe" : "llama-tts";
+        var dirs = new List<string>();
+        try
+        {
+            var modelos = string.IsNullOrEmpty(carpetaModelos)
+                ? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "modelos")
+                : carpetaModelos;
+            dirs.Add(Path.Combine(modelos, "bin"));
+            dirs.Add(modelos);
+        }
+        catch { }
+        foreach (var d in dirs)
+        {
+            try
+            {
+                var c = Path.Combine(d, exe);
+                if (File.Exists(c)) return c;
+            }
+            catch { }
+        }
         foreach (var n in new[] { "llama-tts", "llama-tts.exe" })
         {
             var p = BuscarEnPath(n);
@@ -87,6 +112,38 @@ public sealed class LlamaCppSetup
 
     public static bool SoportaQwen3(string binario) =>
         Ejecutar(binario, "--help", 25).Contains("--mmproj");
+
+    public sealed record Dispositivo(string Id, string Nombre, long MemoriaMb, long LibreMb);
+
+    /// <summary>Port de listar_dispositivos(): parsea `llama-tts --list-devices`.</summary>
+    public static List<Dispositivo> ListarDispositivos(string binario)
+    {
+        var lista = new List<Dispositivo>();
+        if (string.IsNullOrEmpty(binario) || !File.Exists(binario)) return lista;
+        var patron = new Regex(@"^\s*([A-Za-z]+\d+):\s+(.+?)\s+\((\d+)\s*MiB,\s*(\d+)\s*MiB free\)\s*$");
+        foreach (var linea in Ejecutar(binario, "--list-devices", 30).Split('\n'))
+        {
+            var m = patron.Match(linea.TrimEnd());
+            if (m.Success && long.TryParse(m.Groups[3].Value, out var mem) && long.TryParse(m.Groups[4].Value, out var free))
+                lista.Add(new Dispositivo(m.Groups[1].Value, m.Groups[2].Value.Trim(), mem, free));
+        }
+        return lista;
+    }
+
+    /// <summary>
+    /// Port de dispositivo_preferido(): dedicada (NVIDIA/RTX/Radeon RX/Arc)
+    /// sobre integrada; si no, la de más memoria libre. "" = solo CPU.
+    /// </summary>
+    public static string DispositivoPreferido(string binario)
+    {
+        var ds = ListarDispositivos(binario);
+        if (ds.Count == 0) return "";
+        string[] dedicadas = ["nvidia", "geforce", "rtx", "quadro", "tesla", "radeon rx", "arc"];
+        foreach (var d in ds)
+            if (dedicadas.Any(m => d.Nombre.Contains(m, StringComparison.OrdinalIgnoreCase)))
+                return d.Id;
+        return ds.MaxBy(d => d.LibreMb)?.Id ?? "";
+    }
 
     private static string BuscarEnPath(string nombre)
     {
@@ -172,6 +229,7 @@ public sealed class LlamaCppSetup
         string destinoDir, IProgress<string>? log = null, CancellationToken ct = default)
     {
         Directory.CreateDirectory(destinoDir);
+        LimpiarPaquetesViejos(destinoDir, log);
         log?.Report("Buscando build de llama.cpp con binarios…");
         var rel = await BuscarReleaseConBinariosAsync(ct);
         log?.Report($"Release encontrada: {rel.Tag}");
@@ -210,46 +268,179 @@ public sealed class LlamaCppSetup
 
         log?.Report("Extrayendo llama-tts…");
         var tmp = Path.Combine(destinoDir, "tmp-llama");
-        if (Directory.Exists(tmp)) Directory.Delete(tmp, true);
+        if (Directory.Exists(tmp)) BorrarRecursivo(tmp);
         Directory.CreateDirectory(tmp);
-        if (archivo.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
-            ZipFile.ExtractToDirectory(archivo, tmp);
-        else
+        try
         {
-            await using var fz = File.OpenRead(archivo);
-            using var gz = new GZipStream(fz, CompressionMode.Decompress);
-            TarFile.ExtractToDirectory(gz, tmp, true);
+        if (archivo.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+            ExtraerZipSinEnlaces(archivo, tmp, log);
+        else
+            ExtraerTarGzSinEnlaces(archivo, tmp, log);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            throw new InvalidOperationException(
+                $"Windows bloqueó la extracción en '{tmp}' (suele ser por enlaces simbólicos o antivirus). " +
+                "Alternativas: 1) winget install ggml.llamacpp  2) activar Modo desarrollador en Windows  3) reintentar. " +
+                $"Detalle: {ex.Message}");
         }
         var exe = Directory.GetFiles(tmp, OperatingSystem.IsWindows() ? "llama-tts.exe" : "llama-tts", SearchOption.AllDirectories)
             .FirstOrDefault() ?? throw new InvalidOperationException("El paquete no contiene llama-tts.");
+        // llama-tts.exe NO va solo: necesita sus llama.dll / ggml-*.dll hermanas
+        // en la misma carpeta (si no, Windows muestra "no se encontró llama.dll").
+        var origenDir = Path.GetDirectoryName(exe)!;
         var final = Path.Combine(destinoDir, Path.GetFileName(exe));
-        File.Copy(exe, final, true);
-        try { File.Delete(archivo); Directory.Delete(tmp, true); } catch { }
+        try
+        {
+            if (File.Exists(final)) File.SetAttributes(final, FileAttributes.Normal);
+            File.Copy(exe, final, true);
+            log?.Report($"Instalado: {Path.GetFileName(final)}");
+            foreach (var dll in Directory.GetFiles(origenDir, "*.dll"))
+            {
+                var dest = Path.Combine(destinoDir, Path.GetFileName(dll));
+                try
+                {
+                    if (File.Exists(dest)) File.SetAttributes(dest, FileAttributes.Normal);
+                    File.Copy(dll, dest, true);
+                    log?.Report($"Instalada dependencia: {Path.GetFileName(dll)}");
+                }
+                catch (Exception ex) { log?.Report($"AVISO: no se pudo copiar {Path.GetFileName(dll)}: {ex.Message}"); }
+            }
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            throw new InvalidOperationException(
+                $"Sin permiso para escribir en '{destinoDir}'. Cierra programas que lo usen o ejecuta una vez como administrador. " +
+                "Alternativa: winget install ggml.llamacpp. " +
+                $"Detalle: {ex.Message}");
+        }
+        try { File.Delete(archivo); BorrarRecursivo(tmp); } catch { }
         if (!OperatingSystem.IsWindows())
             try { File.SetUnixFileMode(final, File.GetUnixFileMode(final) | UnixFileMode.UserExecute); } catch { }
 
         var ver = VersionDe(final);
+        if (string.IsNullOrWhiteSpace(ver))
+            throw new InvalidOperationException(
+                $"El binario no arranca ({final}). Normalmente faltan DLL hermanas (llama.dll) o el antivirus lo bloqueó. " +
+                "Revisa el registro: debe listar las DLL instaladas. Alternativa: winget install ggml.llamacpp.");
         log?.Report($"llama-tts instalado: {final} ({ver})");
         if (!SoportaQwen3(final))
             log?.Report("AVISO: este build no anuncia --mmproj; se necesita b10500+.");
         return final;
     }
 
+    /// <summary>
+    /// Extrae un zip omitiendo enlaces simbólicos (crear un symlink en
+    /// Windows exige privilegio/modo desarrollador y revienta la
+    /// extracción con "el cliente no dispone de un privilegio necesario").
+    /// También se protege contra zip-slip.
+    /// </summary>
+    private static void ExtraerZipSinEnlaces(string zip, string destino, IProgress<string>? log)
+    {
+        var baseReal = Path.GetFullPath(destino);
+        using var arc = ZipFile.OpenRead(zip);
+        foreach (var e in arc.Entries)
+        {
+            if (string.IsNullOrEmpty(e.Name)) continue; // directorio
+            if (((e.ExternalAttributes >> 16) & 0xF000) == 0xA000)
+            {
+                log?.Report($"Omitiendo enlace simbólico: {e.FullName}");
+                continue;
+            }
+            var dest = Path.GetFullPath(Path.Combine(baseReal, e.FullName));
+            if (!dest.StartsWith(baseReal, StringComparison.OrdinalIgnoreCase)) continue;
+            Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
+            e.ExtractToFile(dest, true);
+        }
+    }
+
+    private static void BorrarRecursivo(string carpeta)
+    {
+        try
+        {
+            foreach (var f in Directory.GetFiles(carpeta, "*", SearchOption.AllDirectories))
+                try { File.SetAttributes(f, FileAttributes.Normal); } catch { }
+            Directory.Delete(carpeta, true);
+        }
+        catch { }
+    }
+    private static void ExtraerTarGzSinEnlaces(string archivo, string destino, IProgress<string>? log)
+    {
+        var baseReal = Path.GetFullPath(destino);
+        using var fz = File.OpenRead(archivo);
+        using var gz = new GZipStream(fz, CompressionMode.Decompress);
+        using var tar = new TarReader(gz);
+        TarEntry? e;
+        while ((e = tar.GetNextEntry()) is not null)
+        {
+            if (e.EntryType is not (TarEntryType.RegularFile or TarEntryType.V7RegularFile))
+            {
+                log?.Report($"Omitiendo: {e.Name} ({e.EntryType})");
+                continue;
+            }
+            var dest = Path.GetFullPath(Path.Combine(baseReal, e.Name));
+            if (dest != baseReal && !dest.StartsWith(baseReal + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+                continue;
+            Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
+            e.ExtractToFile(dest, overwrite: true);
+        }
+    }
+
+    /// <summary>
+    /// Borra paquetes de SO equivocado o restos de intentos fallidos
+    /// (p. ej. un tarball de Ubuntu en Windows, o tmp-llama a medias).
+    /// Solo toca archivos con el patrón oficial llama-*-bin-*.
+    /// </summary>
+    private static void LimpiarPaquetesViejos(string destinoDir, IProgress<string>? log)
+    {
+        try
+        {
+            foreach (var f in Directory.GetFiles(destinoDir, "llama-*-bin-*"))
+            {
+                try { File.SetAttributes(f, FileAttributes.Normal); File.Delete(f); log?.Report($"Eliminado paquete obsoleto: {Path.GetFileName(f)}"); }
+                catch { }
+            }
+            var tmp = Path.Combine(destinoDir, "tmp-llama");
+            if (Directory.Exists(tmp)) BorrarRecursivo(tmp);
+        }
+        catch { }
+    }
+
     private static (string name, string url)? ElegirAsset(List<(string name, string url)> assets)
     {
-        string[] prefs;
+        // Filtro ESTRICTO por SO: un Contains("vulkan-x64") suelto llegó a
+        // colar un build de Ubuntu en Windows. Primero se exige la marca del
+        // SO y solo después se rankea por GPU/formato.
+        IEnumerable<(string name, string url)> porSo;
+        string[] ranking;
+        Func<string, bool> formatoIdeal;
         if (OperatingSystem.IsWindows())
-            prefs = ["vulkan-x64", "cuda-12", "cuda", "win-cpu-x64", "win-x64", "win"];
-        else if (OperatingSystem.IsMacOS())
-            prefs = [RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "macos-arm64" : "macos-x64", "macos"];
-        else
-            prefs = ["ubuntu-x64", "linux-x64", "ubuntu", "linux"];
-        foreach (var p in prefs)
         {
-            var a = assets.FirstOrDefault(x => x.name.Contains(p, StringComparison.OrdinalIgnoreCase));
-            if (!string.IsNullOrEmpty(a.name) && !string.IsNullOrEmpty(a.url)) return a;
+            porSo = assets.Where(x => x.name.Contains("win", StringComparison.OrdinalIgnoreCase));
+            ranking = ["vulkan", "cuda", "cpu"];
+            formatoIdeal = n => n.EndsWith(".zip", StringComparison.OrdinalIgnoreCase);
         }
-        var cualquiera = assets.FirstOrDefault(x => !string.IsNullOrEmpty(x.url));
-        return string.IsNullOrEmpty(cualquiera.name) ? null : cualquiera;
+        else if (OperatingSystem.IsMacOS())
+        {
+            porSo = assets.Where(x => x.name.Contains("macos", StringComparison.OrdinalIgnoreCase));
+            ranking = [RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "arm64" : "x64"];
+            formatoIdeal = n => n.EndsWith(".tar.gz", StringComparison.OrdinalIgnoreCase);
+        }
+        else
+        {
+            porSo = assets.Where(x => x.name.Contains("linux", StringComparison.OrdinalIgnoreCase)
+                                   || x.name.Contains("ubuntu", StringComparison.OrdinalIgnoreCase));
+            ranking = ["vulkan", "cuda", "cpu"];
+            formatoIdeal = n => n.EndsWith(".tar.gz", StringComparison.OrdinalIgnoreCase);
+        }
+        var grupo = porSo.Where(x => !string.IsNullOrEmpty(x.url)).ToList();
+        if (grupo.Count == 0) return null;
+        var ordenados = grupo.Where(x => formatoIdeal(x.name)).Concat(grupo.Where(x => !formatoIdeal(x.name)));
+        foreach (var p in ranking)
+        {
+            var a = ordenados.FirstOrDefault(x => x.name.Contains(p, StringComparison.OrdinalIgnoreCase));
+            if (!string.IsNullOrEmpty(a.name)) return a;
+        }
+        return ordenados.FirstOrDefault();
     }
 }

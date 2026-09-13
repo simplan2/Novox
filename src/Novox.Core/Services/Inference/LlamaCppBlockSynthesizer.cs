@@ -38,7 +38,9 @@ public sealed class LlamaCppBlockSynthesizer : IBlockSynthesizer
         if (opts.Semilla >= 0) cmd.AddRange(["-s", opts.Semilla.ToString()]);
         if (!string.IsNullOrEmpty(vozRefPath)) cmd.AddRange(["--tts-speaker-file", vozRefPath]);
 
-        log?.Report("[llama] bloques → " + salidaWav);
+        log?.Report(string.IsNullOrEmpty(vozRefPath)
+            ? "[llama] SIN referencia → voz por defecto del modelo (no es clonación)"
+            : "[llama] clonando con referencia: " + vozRefPath);
         using var proc = new Process
         {
             StartInfo = new ProcessStartInfo
