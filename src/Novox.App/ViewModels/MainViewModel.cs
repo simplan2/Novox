@@ -21,6 +21,7 @@ public partial class MainViewModel : ObservableObject
     private readonly DispatcherTimer _timerGrabacion = new() { Interval = TimeSpan.FromMilliseconds(100) };
     private double _progresoObjetivo;
     private readonly DispatcherTimer _timerProgreso = new() { Interval = TimeSpan.FromMilliseconds(200) };
+    private double _currentLevelBarWidth = 0; // Guarda el valor anterior para suavizar
 
     [ObservableProperty] private string _estadoTexto = "Inicializando...";
     [ObservableProperty] private string _infoSistema = "";
@@ -62,7 +63,7 @@ public partial class MainViewModel : ObservableObject
     private static VozInfo VozDefecto() => new()
     {
         Id = VozDefectoId,
-        Nombre = "🔊 Voz del modelo (por defecto)",
+        Nombre = "Voz del modelo (por defecto)",
         RutaAudio = "",
         Transcripcion = "Voz de serie del modelo, sin clonar.",
         Duracion = 0,
@@ -70,7 +71,20 @@ public partial class MainViewModel : ObservableObject
     };
     [ObservableProperty] private ObservableCollection<VozInfo> _vocesParaElegir = new([VozDefecto()]);
     [ObservableProperty] private ObservableCollection<GeneracionResultado> _generaciones = new();
-    [ObservableProperty] private ObservableCollection<double> _levelBars = new(Enumerable.Repeat(0.0, 32));
+    //[ObservableProperty] private ObservableCollection<double> _levelBars = new(Enumerable.Repeat(2.0, 32));
+    private double _audioLevelWidth;
+    public double AudioLevelWidth
+    {
+        get => _audioLevelWidth;
+        set
+        {
+            if (_audioLevelWidth != value)
+            {
+                _audioLevelWidth = value;
+                OnPropertyChanged(); // ¡Esto es lo que avisa a la UI que debe redibujarse!
+            }
+        }
+    }
     [ObservableProperty] private ObservableCollection<string> _registro = new();
 
     [ObservableProperty] private int _selectedTabIndex;
@@ -315,15 +329,27 @@ public partial class MainViewModel : ObservableObject
     /// </summary>
     private void AlRecibirNivel(float[] levels)
     {
+        if (levels == null || levels.Length == 0) return;
+
+        float maxSample = 0f;
+        for (int i = 0; i < levels.Length; i++)
+        {
+            float val = Math.Abs(levels[i]);
+            if (val > maxSample) maxSample = val;
+        }
+
+        // 1. Sensibilidad ajustada (puedes probar entre 3.0 y 6.0)
+        double normalizedLevel = Math.Min(1.0, maxSample * 10.0);
+        double maxWidth = 300;
+        double targetWidth = normalizedLevel * maxWidth;
+
+        // 2. Aplicar suavizado (Lerp): se mueve un 40% hacia el nuevo valor en cada frame/evento
+        // Esto evita los saltos bruscos y da una sensación de "vúmetro analógico"
+        _currentLevelBarWidth = _currentLevelBarWidth + (targetWidth - _currentLevelBarWidth) * 0.4;
+
         Dispatcher.UIThread.Post(() =>
         {
-            if (LevelBars.Count != 32)
-                LevelBars = new ObservableCollection<double>(Enumerable.Repeat(0.0, 32));
-            for (var i = 0; i < 32; i++)
-            {
-                var v = levels.Length > 0 ? Math.Abs(levels[i * levels.Length / 32]) : 0;
-                LevelBars[i] = 2 + Math.Min(1.0, v * 3) * 34;
-            }
+            AudioLevelWidth = _currentLevelBarWidth;
         });
     }
 
@@ -336,7 +362,8 @@ public partial class MainViewModel : ObservableObject
             GrabarTexto = "● Grabar";
             GrabarColor = "#f85149";
             Cronometro = $"{_swGrabacion.Elapsed.TotalSeconds:F1} s";
-            LevelBars = new ObservableCollection<double>(Enumerable.Repeat(0.0, 32));
+            _currentLevelBarWidth = 0;
+            AudioLevelWidth = 0;
         });
     }
 

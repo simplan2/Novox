@@ -137,15 +137,17 @@
             BorderThickness="0,0,1,0"
             DockPanel.Dock="Left">
             <Grid RowDefinitions="Auto,*,Auto">
+				
                 <StackPanel
                     Grid.Row="0"
                     VerticalAlignment="Center"
                     Orientation="Horizontal"
                     Spacing="12">
-                    <TextBlock
+					<Image Source="/Assets/novox-logo.png" Height="30"/>
+                    <!--<TextBlock
                         VerticalAlignment="Center"
                         FontSize="30"
-                        Text="🎙️" />
+                        Text="🎙️" />-->
                     <StackPanel VerticalAlignment="Center" Orientation="Vertical">
                         <TextBlock
                             FontSize="18"
@@ -173,7 +175,7 @@
                         Text="FLUJO" />
 
                     <!--  Nemu de flujo  -->
-                    <StackPanel Grid.Row="1" Spacing="12">
+                    <StackPanel Grid.Row="1" Spacing="10">
 
                         <Button
                             Background="{Binding Tab1Color}"
@@ -367,20 +369,20 @@
                                                 <Border Height="64" Classes="item">
                                                     <Grid ColumnDefinitions="44,*,Auto" ColumnSpacing="8">
 
-														<Button
-                                                                Grid.Column="0"
-                                                                Padding="10,6"
-                                                                HorizontalAlignment="Center"
-                                                                VerticalAlignment="Center"
-                                                                HorizontalContentAlignment="Center"
-                                                                VerticalContentAlignment="Center"
-                                                                Background="#4f8cff"
-                                                                Classes="iconbtn"
-                                                                Command="{Binding PlayCommand}"
-                                                                CommandParameter="{Binding}"
-                                                                Content="▶"
-                                                                Foreground="White" />
-														
+                                                        <Button
+                                                            Grid.Column="0"
+                                                            Padding="10,6"
+                                                            HorizontalAlignment="Center"
+                                                            VerticalAlignment="Center"
+                                                            HorizontalContentAlignment="Center"
+                                                            VerticalContentAlignment="Center"
+                                                            Background="#4f8cff"
+                                                            Classes="iconbtn"
+                                                            Command="{Binding PlayCommand}"
+                                                            CommandParameter="{Binding}"
+                                                            Content="▶"
+                                                            Foreground="White" />
+
                                                         <!--  Title Audio  -->
                                                         <Grid
                                                             Grid.Column="1"
@@ -416,25 +418,25 @@
                                                                     TextWrapping="NoWrap" />
                                                             </Grid>
                                                         </Grid>
-                                                       
-														<!--  Buttons  -->
+
+                                                        <!--  Buttons  -->
                                                         <Grid
                                                             Grid.Column="2"
                                                             VerticalAlignment="Center"
                                                             ColumnDefinitions="Auto, 42">
-															<Button
-															  Padding="10,6"
-															  HorizontalAlignment="Center"
-															  VerticalAlignment="Center"
-															  HorizontalContentAlignment="Center"
-															  VerticalContentAlignment="Center"
-															  Classes="ghost"
-															  Command="{Binding UseCommand}"
-															  CommandParameter="{Binding}"
-															  Content="Usar →"
-															  FontSize="11" />
-                                                          
-                                                            
+                                                            <Button
+                                                                Padding="10,6"
+                                                                HorizontalAlignment="Center"
+                                                                VerticalAlignment="Center"
+                                                                HorizontalContentAlignment="Center"
+                                                                VerticalContentAlignment="Center"
+                                                                Classes="ghost"
+                                                                Command="{Binding UseCommand}"
+                                                                CommandParameter="{Binding}"
+                                                                Content="Usar"
+                                                                FontSize="11" />
+
+
                                                             <Button
                                                                 Grid.Column="1"
                                                                 Padding="10,6"
@@ -442,10 +444,11 @@
                                                                 VerticalAlignment="Center"
                                                                 HorizontalContentAlignment="Center"
                                                                 VerticalContentAlignment="Center"
-                                                                Classes="dangerGhost"
+                                                                Classes="ghost"
                                                                 Command="{Binding DeleteCommand}"
                                                                 CommandParameter="{Binding}"
-                                                                Content="✕" />
+                                                                Content="✕"
+                                                                FontSize="11" />
                                                         </Grid>
                                                     </Grid>
                                                 </Border>
@@ -469,54 +472,80 @@
                             <Grid RowDefinitions="Auto,Auto,*" RowSpacing="22">
 
                                 <!--  Bloque 1 Grabar Voz  -->
-                                <StackPanel Spacing="8">
-                                    <TextBlock Classes="cardTitle" Text="Grabar voz" />
-                                    <TextBlock Classes="hint" Text="10–15 segundos, una sola persona, sin ruido ni música." />
-                                    <Button
-                                        Padding="16,12"
-                                        HorizontalAlignment="Stretch"
-                                        HorizontalContentAlignment="Center"
-                                        Background="{Binding GrabarColor}"
-                                        Classes="primary"
-                                        Command="{Binding GrabarCommand}"
-                                        Content="{Binding GrabarTexto}"
-                                        FontSize="15" />
-                                    <TextBlock
-                                        HorizontalAlignment="Center"
-                                        FontSize="14"
-                                        FontWeight="Bold"
-                                        Foreground="#4f8cff"
-                                        Text="{Binding Cronometro}" />
-                                    <Border
-                                        Height="40"
-                                        Padding="6"
-                                        Background="#0e1117"
-                                        BorderBrush="#2a323f"
-                                        BorderThickness="1"
-                                        CornerRadius="8">
-                                        <ItemsControl ItemsSource="{Binding LevelBars}">
-                                            <ItemsControl.ItemsPanel>
-                                                <ItemsPanelTemplate>
-                                                    <StackPanel
-                                                        HorizontalAlignment="Stretch"
-                                                        VerticalAlignment="Center"
-                                                        Orientation="Horizontal"
-                                                        Spacing="1" />
-                                                </ItemsPanelTemplate>
-                                            </ItemsControl.ItemsPanel>
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate>
+                                <StackPanel Spacing="10">
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Classes="cardTitle" Text="Grabar voz" />
+                                        <TextBlock Classes="hint" Text="10–15 segundos, una sola persona, sin ruido ni música." />
+                                    </StackPanel>
+                                    <Grid Margin="0,8" RowDefinitions="Auto,*" RowSpacing="10">
+                                        <Grid ColumnDefinitions="Auto,*" VerticalAlignment="Center" Grid.Row="1">
+                                            <!--  Level de audio  -->
+                                            <Border
+                                                Width="300"
+                                                Height="16"
+                                                Padding="2" VerticalAlignment="Center"
+                                                HorizontalAlignment="Center"
+                                                Background="#0e1117"
+                                                BorderBrush="#2a323f"
+                                                BorderThickness="1"
+                                                CornerRadius="4">
+
+                                                <!--  Contenedor que actúa como máscara de recorte dinámica  -->
+                                                <Border
+                                                    Width="{Binding AudioLevelWidth}"
+                                                    HorizontalAlignment="Left"
+                                                    BorderThickness="0"
+                                                    ClipToBounds="True"
+                                                    CornerRadius="2">
+
+                                                    <!--
+                                                        Este gradiente es TOTALMENTE ESTÁTICO y mide siempre 300px de ancho fijo,
+                                                        por lo que NUNCA se encoge ni se deforma; solo se revela.
+                                                    -->
                                                     <Border
-                                                        Width="3"
-                                                        Height="{Binding}"
-                                                        Margin="0,0,1,0"
-                                                        HorizontalAlignment="Center"
-                                                        Background="#4f8cff"
-                                                        CornerRadius="1" />
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                    </Border>
+                                                        Width="300"
+                                                        Height="14"
+                                                        HorizontalAlignment="Left"
+                                                        VerticalAlignment="Center"
+                                                        CornerRadius="2">
+                                                        <Border.Background>
+                                                            <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                                                                <GradientStop Offset="0.0" Color="LimeGreen" />
+                                                                <GradientStop Offset="0.6" Color="Gold" />
+                                                                <GradientStop Offset="1.0" Color="IndianRed" />
+                                                            </LinearGradientBrush>
+                                                        </Border.Background>
+                                                    </Border>
+
+                                                </Border>
+                                            </Border>
+
+
+                                            <TextBlock
+                                                Grid.Column="1"
+                                                HorizontalAlignment="Center"
+                                                FontSize="14"
+                                                FontWeight="Bold"
+                                                Foreground="#4f8cff"
+                                                Text="{Binding Cronometro}" />
+                                        </Grid>
+
+                                        <Button
+                                            Grid.Row="0"
+                                            Margin="0,4"
+                                            Padding="16,12"
+                                            HorizontalAlignment="Stretch"
+                                            HorizontalContentAlignment="Center"
+                                            Background="{Binding GrabarColor}"
+                                            Classes="primary"
+                                            Command="{Binding GrabarCommand}"
+                                            Content="{Binding GrabarTexto}"
+                                            FontSize="15" />
+
+                                    </Grid>
+
+
+
                                     <TextBox
                                         FontSize="12"
                                         PlaceholderText="Nombre de la voz (p. ej. «Narrador»)"
@@ -537,9 +566,11 @@
                                 </StackPanel>
 
                                 <!--  Bloque 2 Usar archivo de audio  -->
-                                <StackPanel Grid.Row="1" Spacing="8">
-                                    <TextBlock Classes="cardTitle" Text="Usar archivo de audio" />
-                                    <TextBlock Classes="hint" Text="WAV, MP3, M4A, OGG… se normaliza solo al importar." />
+                                <StackPanel Grid.Row="1" Spacing="10">
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Classes="cardTitle" Text="Usar archivo de audio" />
+                                        <TextBlock Classes="hint" Text="WAV, MP3, M4A, OGG… se normaliza solo al importar." />
+                                    </StackPanel>
                                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                                         <TextBox
                                             Grid.Column="0"

@@ -81,11 +81,25 @@ public class AudioCaptureService : IAudioCaptureService
         _writer?.Write(e.Buffer, 0, e.BytesRecorded);
         _writer?.Flush();
 
-        var samples = new float[e.BytesRecorded / 2];
-        Buffer.BlockCopy(e.Buffer, 0, samples, 0, e.BytesRecorded);
+        // 16-bit PCM tiene 2 bytes por muestra
+        int bytesRecorded = e.BytesRecorded;
+        int sampleCount = bytesRecorded / 2;
+        var samples = new float[sampleCount];
+
+        // Convertir bytes de 16 bits (short) a float normalizado (-1.0 a 1.0)
+        for (int i = 0; i < sampleCount; i++)
+        {
+            short rawSample = BitConverter.ToInt16(e.Buffer, i * 2);
+            samples[i] = rawSample / 32768f;
+        }
+
+        // Extraer los niveles para la UI (máximo 64 muestras representativas)
         var levels = new float[Math.Min(64, samples.Length)];
         for (int i = 0; i < levels.Length; i++)
+        {
             levels[i] = Math.Abs(samples[i * (samples.Length / levels.Length)]);
+        }
+
         OnLevelUpdated?.Invoke(levels);
     }
 

@@ -6,7 +6,19 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
     <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationIcon>Assets\novox.ico</ApplicationIcon>
+    <Copyright>Copyright © 2026 simplan</Copyright>
+    <Company>Juan Esteban V.</Company>
   </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Assets\novox-logo.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\novox-logo.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Assets\novox.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="12.0.4" />
